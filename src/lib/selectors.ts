@@ -2,7 +2,7 @@
  * Small derived-data helpers, kept separate from the mock data so they can
  * survive the move to Supabase (they'd run on query results instead).
  */
-import type { Role, SupplyItem, SupplyStatus, Visibility } from "@/lib/types";
+import type { Role, SupplyItem, SupplyStatus, TideEvent, Visibility } from "@/lib/types";
 
 /**
  * Visibility gate for guide content. The mock "guest" role represents an
@@ -54,6 +54,30 @@ function priorityRank(item: SupplyItem): number {
   const byPriority = { high: 2, normal: 1, low: 0 }[item.priority];
   const byStatus = item.status === "Out" ? 1 : 0;
   return byPriority * 2 + byStatus;
+}
+
+/**
+ * Find the next tide of a given type at/after a reference day + minute.
+ * The mock "now" is July 9, 9:00 AM (see callers). Returns undefined if none.
+ * BACKEND NOTE: with live NOAA data, "now" becomes the real clock.
+ */
+export function nextTide(
+  events: TideEvent[],
+  type: TideEvent["type"],
+  today: string,
+  nowMinutes: number,
+): TideEvent | undefined {
+  return events.find((t) => {
+    if (t.type !== type) return false;
+    if (t.date > today) return true;
+    return t.date === today && tideTimeToMinutes(t.time) >= nowMinutes;
+  });
+}
+
+function tideTimeToMinutes(time: string): number {
+  const [clock, meridiem] = time.split(" ");
+  const [h, m] = clock.split(":").map(Number);
+  return ((h % 12) + (meridiem === "PM" ? 12 : 0)) * 60 + m;
 }
 
 /** Format an ISO date like "2026-07-24" as "July 24". */

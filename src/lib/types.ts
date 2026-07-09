@@ -278,6 +278,27 @@ export interface TideWindow {
   moonlight?: boolean; // a night low under the moon
 }
 
+/**
+ * One day in a forecast. MOCK for now. Home shows the first three of these;
+ * the same shape scales to a 10-day outlook without any redesign.
+ * BACKEND NOTE: later filled per day from a weather API + NOAA tide
+ * predictions; `sourceStatus`/`lastUpdated` become real provenance.
+ */
+export interface ForecastDay {
+  date: string; // ISO date
+  label: string; // "Today", "Tomorrow", or a weekday
+  summary: string; // short weather summary
+  highF: number;
+  lowF: number;
+  rainChance: string;
+  wind: string;
+  lowTide: string; // e.g. "11:54 AM · -1.9 ft"
+  highTide: string; // e.g. "7:26 PM · 12.4 ft"
+  tideNote?: string; // the day's most notable window / low
+  sourceStatus: string; // e.g. "Mock data for first version"
+  lastUpdated: string; // human-readable
+}
+
 export type SpecialDateKind =
   | "Federal holiday"
   | "Family date"

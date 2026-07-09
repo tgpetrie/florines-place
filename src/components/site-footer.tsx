@@ -10,7 +10,7 @@ export function SiteFooter() {
         Built by Florine in the early 1980s. Kept by her family, for her family.
       </p>
       <p className="mt-4 text-xs text-driftwood">
-        A shared family place — not a rental, never a business.
+        A shared family place, cared for together.
       </p>
     </footer>
   );

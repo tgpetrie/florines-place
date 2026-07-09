@@ -10,7 +10,7 @@
  * Historical reference would come from the same NOAA/weather archives,
  * joined with guestbook entries by date.
  */
-import type { TideEvent, TideWindow, WeatherSummary } from "@/lib/types";
+import type { ForecastDay, TideEvent, TideWindow, WeatherSummary } from "@/lib/types";
 
 export const weatherNow: WeatherSummary = {
   asOf: "Thursday, July 9 · placeholder snapshot",
@@ -79,6 +79,154 @@ export const tideWindows: TideWindow[] = [
     moonlight: true,
   },
 ];
+
+/**
+ * Ten-day outlook — MOCK. Home shows the first three (see `threeDayForecast`);
+ * the rest expand inline or feed the Tides, Weather & Nearby page. Keeping one
+ * ten-item array means the Home page never needs redesigning to go from 3 → 10.
+ *
+ * currentWeather / currentTide / sunMoon (per the data spec) are served today
+ * by `weatherNow` and `tideEvents` above — kept as single sources so the two
+ * pages that read them can't drift.
+ */
+export const tenDayOutlook: ForecastDay[] = [
+  {
+    date: "2026-07-09",
+    label: "Today",
+    summary: "Partly sunny, light marine haze",
+    highF: 73,
+    lowF: 54,
+    rainChance: "10%",
+    wind: "SW 7 mph",
+    lowTide: "11:54 AM · -1.9 ft",
+    highTide: "7:26 PM · 12.4 ft",
+    tideNote: "Minus tide opens the flats at lunchtime.",
+    sourceStatus: "Mock data for first version",
+    lastUpdated: "This morning (mock)",
+  },
+  {
+    date: "2026-07-10",
+    label: "Tomorrow",
+    summary: "Morning fog, then sun",
+    highF: 75,
+    lowF: 55,
+    rainChance: "5%",
+    wind: "SW 6 mph",
+    lowTide: "12:38 PM · -2.3 ft",
+    highTide: "8:04 PM · 12.7 ft",
+    tideNote: "Best low of the week — plan the beach walk.",
+    sourceStatus: "Mock data for first version",
+    lastUpdated: "This morning (mock)",
+  },
+  {
+    date: "2026-07-11",
+    label: "Saturday",
+    summary: "Sunny and calm",
+    highF: 76,
+    lowF: 56,
+    rainChance: "0%",
+    wind: "W 5 mph",
+    lowTide: "1:22 PM · -2.0 ft",
+    highTide: "8:44 PM · 12.9 ft",
+    tideNote: "Another strong midday low, usually quieter.",
+    sourceStatus: "Mock data for first version",
+    lastUpdated: "This morning (mock)",
+  },
+  {
+    date: "2026-07-12",
+    label: "Sunday",
+    summary: "High clouds",
+    highF: 72,
+    lowF: 55,
+    rainChance: "15%",
+    wind: "SW 8 mph",
+    lowTide: "2:06 PM · -1.4 ft",
+    highTide: "9:22 PM · 13.0 ft",
+    sourceStatus: "Mock data for first version",
+    lastUpdated: "This morning (mock)",
+  },
+  {
+    date: "2026-07-13",
+    label: "Monday",
+    summary: "Marine layer, slow to clear",
+    highF: 70,
+    lowF: 54,
+    rainChance: "20%",
+    wind: "SW 9 mph",
+    lowTide: "2:52 PM · -0.6 ft",
+    highTide: "10:00 PM · 13.1 ft",
+    sourceStatus: "Mock data for first version",
+    lastUpdated: "This morning (mock)",
+  },
+  {
+    date: "2026-07-14",
+    label: "Tuesday",
+    summary: "Sun breaks by afternoon",
+    highF: 71,
+    lowF: 53,
+    rainChance: "10%",
+    wind: "NW 7 mph",
+    lowTide: "3:34 PM · 0.4 ft",
+    highTide: "10:38 PM · 13.0 ft",
+    sourceStatus: "Mock data for first version",
+    lastUpdated: "This morning (mock)",
+  },
+  {
+    date: "2026-07-15",
+    label: "Wednesday",
+    summary: "Warm and clear",
+    highF: 77,
+    lowF: 55,
+    rainChance: "0%",
+    wind: "W 5 mph",
+    lowTide: "4:18 PM · 1.6 ft",
+    highTide: "11:16 PM · 12.7 ft",
+    sourceStatus: "Mock data for first version",
+    lastUpdated: "This morning (mock)",
+  },
+  {
+    date: "2026-07-16",
+    label: "Thursday",
+    summary: "A chance of a passing shower",
+    highF: 69,
+    lowF: 54,
+    rainChance: "30%",
+    wind: "SW 10 mph",
+    lowTide: "5:06 PM · 2.9 ft",
+    highTide: "11:58 PM · 12.3 ft",
+    sourceStatus: "Mock data for first version",
+    lastUpdated: "This morning (mock)",
+  },
+  {
+    date: "2026-07-17",
+    label: "Friday",
+    summary: "Breezy, mostly cloudy",
+    highF: 67,
+    lowF: 53,
+    rainChance: "25%",
+    wind: "SW 12 mph",
+    lowTide: "6:02 PM · 4.1 ft",
+    highTide: "12:44 PM · 11.9 ft",
+    sourceStatus: "Mock data for first version",
+    lastUpdated: "This morning (mock)",
+  },
+  {
+    date: "2026-07-18",
+    label: "Saturday",
+    summary: "Clearing and pleasant",
+    highF: 72,
+    lowF: 54,
+    rainChance: "10%",
+    wind: "W 6 mph",
+    lowTide: "7:08 PM · 5.0 ft",
+    highTide: "1:34 PM · 11.6 ft",
+    sourceStatus: "Mock data for first version",
+    lastUpdated: "This morning (mock)",
+  },
+];
+
+/** Home shows just the next three days, with the option to expand to ten. */
+export const threeDayForecast: ForecastDay[] = tenDayOutlook.slice(0, 3);
 
 export const historicalPlaceholder = {
   title: "Looking back at the canal",
