@@ -1,0 +1,142 @@
+@import "tailwindcss";
+
+/* ---------------------------------------------------------------------------
+   Florine's Place — design tokens
+   Motif: Hood Canal at very low tide, under moonlight.
+   These tokens are the single source of truth for color and type.
+--------------------------------------------------------------------------- */
+
+@theme {
+  /* Palette */
+  --color-night: #131f31; /* moonlit navy, deepest */
+  --color-navy: #22334e; /* moonlit navy */
+  --color-tide: #3c5470; /* water at dusk */
+  --color-moon: #e9edf3; /* moonlight on water */
+  --color-oyster: #f6f2e9; /* oyster shell white — page background */
+  --color-shell: #fdfbf5; /* inner shell — card background */
+  --color-sand: #e7dcc6; /* wet sand beige */
+  --color-sand-deep: #d5c5a5;
+  --color-cedar: #6d4a33; /* cedar brown */
+  --color-rust: #b0522c; /* crab shell rust */
+  --color-seaweed: #47664f; /* seaweed green */
+  --color-pearl: #c8ccd2; /* pearl gray */
+  --color-driftwood: #8b8378; /* driftwood gray */
+  --color-ink: #2e2921; /* warm near-black for text */
+  --color-ink-soft: #5c5548; /* softened text */
+
+  /* Type */
+  --font-display: var(--font-fraunces), "Georgia", serif;
+  --font-body: var(--font-karla), "Helvetica Neue", sans-serif;
+
+  /* Shape */
+  --radius-card: 1rem;
+}
+
+/* ---------------------------------------------------------------------------
+   Base
+--------------------------------------------------------------------------- */
+
+body {
+  background-color: var(--color-oyster);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  /* faint tide-line texture: three soft horizontal ripples */
+  background-image: repeating-linear-gradient(
+    180deg,
+    transparent 0px,
+    transparent 138px,
+    color-mix(in srgb, var(--color-sand) 26%, transparent) 139px,
+    transparent 141px
+  );
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-display);
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+::selection {
+  background: var(--color-sand);
+  color: var(--color-ink);
+}
+
+/* ---------------------------------------------------------------------------
+   Shared components
+--------------------------------------------------------------------------- */
+
+@layer components {
+  .card {
+    background: var(--color-shell);
+    border: 1px solid color-mix(in srgb, var(--color-sand-deep) 55%, transparent);
+    border-radius: var(--radius-card);
+    box-shadow: 0 1px 2px rgb(46 41 33 / 0.04), 0 4px 16px rgb(46 41 33 / 0.05);
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-radius: 999px;
+    padding: 0.8rem 1.6rem;
+    font-size: 1rem;
+    font-weight: 700;
+    transition: transform 120ms ease, box-shadow 120ms ease, background-color 120ms ease;
+  }
+  .btn:active {
+    transform: translateY(1px);
+  }
+
+  .btn-primary {
+    background: var(--color-navy);
+    color: var(--color-moon);
+    box-shadow: 0 2px 10px rgb(19 31 49 / 0.25);
+  }
+  .btn-primary:hover {
+    background: var(--color-night);
+  }
+
+  .btn-quiet {
+    background: transparent;
+    color: var(--color-navy);
+    border: 1.5px solid color-mix(in srgb, var(--color-navy) 40%, transparent);
+  }
+  .btn-quiet:hover {
+    background: color-mix(in srgb, var(--color-sand) 40%, transparent);
+  }
+
+  .eyebrow {
+    font-family: var(--font-body);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--color-driftwood);
+  }
+}
+
+/* Gentle rise-in for hero and page headers */
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.rise {
+  animation: rise 700ms cubic-bezier(0.2, 0.7, 0.3, 1) both;
+}
+.rise-2 {
+  animation: rise 700ms cubic-bezier(0.2, 0.7, 0.3, 1) 120ms both;
+}
+.rise-3 {
+  animation: rise 700ms cubic-bezier(0.2, 0.7, 0.3, 1) 240ms both;
+}
