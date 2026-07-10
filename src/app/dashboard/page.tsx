@@ -12,10 +12,12 @@
 import Link from "next/link";
 import { useRole } from "@/lib/role-context";
 import { PageHeader } from "@/components/page-header";
-import { CalendarBadge, FeeBadge, SupplyBadge, Badge } from "@/components/status-badge";
+import { CalendarBadge, FeeBadge, SupplyBadge, IdeaBadge, Badge } from "@/components/status-badge";
+import { PorchNotesFull } from "@/components/porch-notes";
 import { stayRequests } from "@/data/stay-requests";
 import { calendarEvents, familyPlans } from "@/data/calendar";
 import { supplyItems } from "@/data/supplies";
+import { ideas } from "@/data/ideas";
 import { guestbookEntries } from "@/data/guestbook";
 import { dateRange, shortDate } from "@/lib/selectors";
 
@@ -29,9 +31,9 @@ const actionBtn =
 const adminBtn =
   "rounded-full border border-rust/30 bg-shell px-3.5 py-1.5 text-sm font-bold text-rust transition-colors hover:bg-rust hover:text-shell";
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+function Section({ title, children, id }: { title: string; children: React.ReactNode; id?: string }) {
   return (
-    <section className="card p-6">
+    <section id={id} className="card scroll-mt-24 p-6">
       <h2 className="text-xl text-night">{title}</h2>
       <div className="mt-4">{children}</div>
     </section>
@@ -85,6 +87,9 @@ export default function DashboardPage() {
   const recentSupplies = [...supplyItems]
     .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
     .slice(0, 4);
+  const activeIdeas = ideas
+    .filter((i) => i.status !== "Done" && i.status !== "Not Now")
+    .slice(0, 4);
   const maintenance = calendarEvents.filter((e) => e.status === "maintenance");
   const recentEntries = guestbookEntries.filter(
     (e) => e.visibility === "family" || isAdmin,
@@ -98,9 +103,29 @@ export default function DashboardPage() {
         lede="Requests to review, stays coming up, and the small acts of care that keep Florine's Place ready for everyone."
       />
 
+      {/* Sub-sections — Supplies & Ideas now live here rather than in the top nav */}
+      <nav className="mx-auto mb-2 flex max-w-6xl flex-wrap justify-center gap-2 px-4 sm:px-6" aria-label="Dashboard sections">
+        {[
+          { href: "#requests", label: "Stay Requests" },
+          { href: "/supplies", label: "Supplies" },
+          { href: "/ideas", label: "Ideas" },
+          { href: "#maintenance", label: "Maintenance" },
+          { href: "#porch-notes", label: "Porch Notes" },
+          { href: "#guestbook", label: "Family Notes" },
+        ].map((item) => (
+          <Link
+            key={item.label}
+            href={item.href}
+            className="rounded-full border border-sand-deep/60 bg-shell px-3.5 py-1.5 text-sm font-semibold text-navy hover:bg-sand/40"
+          >
+            {item.label}
+          </Link>
+        ))}
+      </nav>
+
       <div className="mx-auto grid max-w-6xl gap-6 px-4 sm:px-6 lg:grid-cols-2">
         {/* Pending requests — full width */}
-        <section className="card p-6 lg:col-span-2">
+        <section id="requests" className="card scroll-mt-24 p-6 lg:col-span-2">
           <div className="flex items-center justify-between">
             <h2 className="text-xl text-night">Pending stay requests</h2>
             <Badge tone="sand">{pending.length} waiting</Badge>
@@ -212,8 +237,26 @@ export default function DashboardPage() {
           </Link>
         </Section>
 
+        {/* Ideas & improvements */}
+        <Section title="Ideas &amp; improvements">
+          <ul className="space-y-3">
+            {activeIdeas.map((idea) => (
+              <li key={idea.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-oyster/60 px-4 py-3">
+                <div>
+                  <span className="font-bold text-night">{idea.title}</span>
+                  <span className="ml-2 text-xs text-driftwood">{idea.addedBy}</span>
+                </div>
+                <IdeaBadge status={idea.status} />
+              </li>
+            ))}
+          </ul>
+          <Link href="/ideas" className="mt-4 inline-block text-sm font-bold text-navy underline underline-offset-2">
+            Open the ideas board →
+          </Link>
+        </Section>
+
         {/* Maintenance notes */}
-        <Section title="Maintenance notes">
+        <Section id="maintenance" title="Maintenance notes">
           <ul className="space-y-3">
             {maintenance.map((event) => (
               <li key={event.id} className="flex flex-wrap items-center gap-3 rounded-lg bg-oyster/60 px-4 py-3">
@@ -230,8 +273,13 @@ export default function DashboardPage() {
           </ul>
         </Section>
 
+        {/* Porch Notes — full width */}
+        <section className="card p-6 lg:col-span-2">
+          <PorchNotesFull />
+        </section>
+
         {/* Guestbook */}
-        <Section title="Recent guestbook entries">
+        <Section id="guestbook" title="Recent guestbook entries">
           <ul className="space-y-3">
             {recentEntries.map((entry) => (
               <li key={entry.id} className="rounded-lg bg-oyster/60 px-4 py-3">

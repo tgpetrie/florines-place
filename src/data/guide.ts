@@ -47,9 +47,9 @@ export const guideTopics: GuideTopic[] = [
           "Electric wall heaters in the bedrooms and main bathroom for quick heat; the wood stove for real heat. See Heating below.",
       },
       {
-        label: "Sort out drinking water.",
+        label: "Drinking water.",
         detail:
-          "The well water is fine for cooking, cleaning, bathing, and laundry, but it tastes a bit sulfuric — bottled water is nicer for drinking. The family habit is to grab a couple of gallons at the grocery on the way in.",
+          "The small filtered-water faucet beside the kitchen sink is the best option for drinking and refilling bottles — it tastes much better than the well water. If you prefer bottled water, the family habit is to grab a couple of gallons at the grocery on the way in.",
       },
     ],
     notes: [
@@ -69,6 +69,11 @@ export const guideTopics: GuideTopic[] = [
     visibility: "approved_guest",
     summary:
       "The house runs on its own well. In cold months the water is shut off in two places — the pump house and the basement — so it can't freeze.",
+    body: [
+      "Two things worth knowing about the kitchen before you settle in:",
+      "Filtered drinking water: there is a small dedicated faucet beside the kitchen sink — that's the one for drinking and refilling water bottles. The well water is clean and fine for everything else; the filtered tap just tastes better.",
+      "The main kitchen faucet uses a motion sensor to turn on and off. The sensor works well but can occasionally be a little temperamental — it may not immediately be obvious whether the water has stopped running. It's worth pausing and checking that the faucet has stopped before walking away from the sink.",
+    ],
     steps: [
       {
         label: "Check the kitchen faucet first.",
@@ -304,17 +309,19 @@ export const guideTopics: GuideTopic[] = [
     category: "Cleaning & leaving",
     icon: "trash",
     visibility: "approved_guest",
-    summary: "There is no garbage service at the cabin — everything leaves with you.",
+    summary: "There is no curbside garbage or recycling service at the cabin — everything leaves with you.",
     body: [
-      "Empty all the cans before you go and take trash and recycling home, or run them to the dump on your way out.",
-      "Per the 2020 letter: the dump is just off the Hansville road, on the right before you reach the casino heading back toward Kingston. It was open Thursday–Monday, 9–4; recycling free, trash about $6 a bag. Hours and prices need re-verifying — check before you count on it.",
+      "Empty all the cans before you go and take trash and recycling home with you, or run them to the transfer station on your way out.",
+      "Per the 2020 letter: the dump / transfer station is just off the Hansville road, on the right before you reach the casino heading back toward Kingston. It was open Thursday–Monday, 9–4; recycling free, trash about $6 a bag.",
+      "Hours, days, prices, and accepted recycling materials are not confirmed — they may have changed since 2020. An admin should locate the current official schedule for the Kitsap County transfer station nearest Hansville and update this section with a verified source link.",
     ],
     notes: [
-      "The dump is also listed under Nearby Essentials on the Tides, Weather & Nearby page.",
+      "Do not present the hours or prices above as current — they are from 2020 and have not been re-verified.",
+      "The transfer station is also listed under Nearby Essentials on the Tides, Weather & Nearby page.",
     ],
     lastVerified: "2020-05-01",
     needsVerification: true,
-    sourceNote: SOURCE_2020,
+    sourceNote: "From the May 2020 welcome letter. Provider, hours, and prices not re-verified — official source needed.",
   },
 
   // --- Supplies / restock ---------------------------------------------------------------

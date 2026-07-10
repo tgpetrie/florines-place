@@ -7,122 +7,154 @@ import { useRole, roleLabels } from "@/lib/role-context";
 import { Lantern } from "@/components/shore-art";
 import type { Role } from "@/lib/types";
 
-const primaryNav = [
-  { href: "/", label: "Home" },
-  { href: "/calendar", label: "Calendar" },
-  { href: "/request", label: "Request a Stay" },
-  { href: "/dashboard", label: "Family Dashboard" },
-  { href: "/supplies", label: "Supplies" },
-  { href: "/ideas", label: "Ideas" },
-];
+/**
+ * Four primary areas, each opening a hover dropdown for its subpages (no
+ * chevron). Request a Stay lives under Availability; Supplies & Ideas under
+ * Family Dashboard; the field guide, tides, nearby, fishing and guestbook
+ * under Guide. No route was removed — the top bar just got calmer.
+ */
+interface NavItem {
+  label: string;
+  href: string;
+  match: string[];
+  items?: { href: string; label: string }[];
+}
 
-/** Grouped under "Guide" so the header stays calm as pages grow. */
-const guideNav = [
-  { href: "/guide", label: "Cabin Guide" },
-  { href: "/local", label: "Tides, Weather & Nearby" },
-  { href: "/guestbook", label: "Guestbook" },
+const nav: NavItem[] = [
+  { label: "Home", href: "/", match: ["/"] },
+  {
+    label: "Availability",
+    href: "/calendar",
+    match: ["/calendar", "/request"],
+    items: [
+      { href: "/calendar", label: "Calendar" },
+      { href: "/request", label: "Request a Stay" },
+    ],
+  },
+  {
+    label: "Family Dashboard",
+    href: "/dashboard",
+    match: ["/dashboard", "/supplies", "/ideas"],
+    items: [
+      { href: "/dashboard", label: "Overview" },
+      { href: "/supplies", label: "Supplies" },
+      { href: "/ideas", label: "Ideas" },
+    ],
+  },
+  {
+    label: "Guide",
+    href: "/guide",
+    match: ["/guide", "/local", "/guestbook"],
+    items: [
+      { href: "/guide", label: "Cabin Guide" },
+      { href: "/local#conditions", label: "Tides & Weather" },
+      { href: "/local#stops", label: "Nearby" },
+      { href: "/local#harvest", label: "Fishing & Shellfish" },
+      { href: "/guestbook", label: "Guestbook" },
+    ],
+  },
 ];
-
-const allNav = [...primaryNav, ...guideNav];
 
 export function SiteHeader() {
   const pathname = usePathname();
   const { role, setRole } = useRole();
-  const [open, setOpen] = useState(false);
-  const [guideOpen, setGuideOpen] = useState(false);
-
-  const linkClass = (active: boolean) =>
-    `rounded-full px-3 py-1.5 text-sm font-bold transition-colors ${
-      active ? "bg-navy text-moon" : "text-ink-soft hover:bg-sand/50 hover:text-ink"
-    }`;
-
-  const inGuide = guideNav.some((item) => item.href === pathname);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [hovered, setHovered] = useState<string | null>(null);
 
   return (
-    <header className="sticky top-0 z-40 border-b border-sand-deep/40 bg-oyster/90 backdrop-blur">
+    <header className="sticky top-0 z-40 border-b border-sandshadow/40 bg-oyster/90 backdrop-blur">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
-        <Link href="/" className="flex items-center gap-2" onClick={() => setOpen(false)}>
-          <Lantern className="h-7 w-6 text-rust" />
-          <span className="font-display text-xl text-night" style={{ fontFamily: "var(--font-display)" }}>
+        <Link href="/" className="flex items-center gap-2" onClick={() => setMobileOpen(false)}>
+          <Lantern className="h-7 w-6 text-cedarwarm" />
+          <span className="text-xl text-cedardark" style={{ fontFamily: "var(--font-display)" }}>
             Florine&rsquo;s Place
           </span>
         </Link>
 
         <nav className="hidden items-center gap-1 lg:flex" aria-label="Main">
-          {primaryNav.map((item) => (
-            <Link key={item.href} href={item.href} className={linkClass(pathname === item.href)}>
-              {item.label}
-            </Link>
-          ))}
-
-          {/* Guide dropdown */}
-          <div className="relative">
-            <button
-              type="button"
-              className={`${linkClass(inGuide)} flex items-center gap-1`}
-              aria-expanded={guideOpen}
-              aria-haspopup="true"
-              onClick={() => setGuideOpen((v) => !v)}
-            >
-              Guide
-              <svg viewBox="0 0 10 6" className="h-1.5 w-2.5" fill="none" aria-hidden="true">
-                <path d="M1 1 L5 5 L9 1" stroke="currentColor" strokeWidth="1.5" />
-              </svg>
-            </button>
-            {guideOpen && (
-              <>
-                {/* click-away backdrop */}
-                <div className="fixed inset-0 z-40" onClick={() => setGuideOpen(false)} />
-                <div className="absolute right-0 z-50 mt-2 w-60 rounded-2xl border border-sand-deep/50 bg-shell p-2 shadow-lg">
-                  {guideNav.map((item) => (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      onClick={() => setGuideOpen(false)}
-                      className={`block rounded-xl px-3.5 py-2.5 text-sm font-bold ${
-                        pathname === item.href ? "bg-navy text-moon" : "text-ink hover:bg-sand/50"
-                      }`}
-                    >
-                      {item.label}
-                    </Link>
-                  ))}
-                </div>
-              </>
-            )}
-          </div>
+          {nav.map((item) => {
+            const active = item.match.includes(pathname);
+            return (
+              <div
+                key={item.label}
+                className="relative"
+                onMouseEnter={() => setHovered(item.label)}
+                onMouseLeave={() => setHovered(null)}
+              >
+                <Link
+                  href={item.href}
+                  className={`rounded-full px-3 py-1.5 text-sm font-semibold transition-colors ${
+                    active ? "bg-canaldeep text-oyster" : "text-ink-soft hover:bg-wetsand/50 hover:text-ink"
+                  }`}
+                >
+                  {item.label}
+                </Link>
+                {item.items && hovered === item.label && (
+                  <div className="absolute left-0 top-full z-50 w-52 pt-2">
+                    <div className="rounded-2xl border border-sandshadow/50 bg-oystercard p-2 shadow-lg">
+                      {item.items.map((sub) => (
+                        <Link
+                          key={sub.href}
+                          href={sub.href}
+                          className="block rounded-xl px-3.5 py-2.5 text-sm font-semibold text-ink hover:bg-wetsand/50"
+                        >
+                          {sub.label}
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </nav>
 
         <div className="flex items-center gap-2">
           <RolePicker role={role} setRole={setRole} />
           <button
             type="button"
-            className="btn-quiet btn !px-3 !py-1.5 text-sm lg:hidden"
-            aria-expanded={open}
+            className="rounded-full border-2 border-canal/40 px-3 py-1.5 text-sm font-semibold text-canaldeep lg:hidden"
+            aria-expanded={mobileOpen}
             aria-label="Toggle menu"
-            onClick={() => setOpen((v) => !v)}
+            onClick={() => setMobileOpen((v) => !v)}
           >
             Menu
           </button>
         </div>
       </div>
 
-      {open && (
-        <nav className="border-t border-sand-deep/40 bg-oyster px-4 py-3 lg:hidden" aria-label="Main mobile">
-          <ul className="grid grid-cols-2 gap-1">
-            {allNav.map((item) => (
-              <li key={item.href}>
-                <Link
-                  href={item.href}
-                  onClick={() => setOpen(false)}
-                  className={`block rounded-lg px-3 py-2.5 text-base font-bold ${
-                    pathname === item.href ? "bg-navy text-moon" : "text-ink hover:bg-sand/50"
-                  }`}
-                >
-                  {item.label}
-                </Link>
-              </li>
-            ))}
-          </ul>
+      {mobileOpen && (
+        <nav className="border-t border-sandshadow/40 bg-oyster px-4 py-3 lg:hidden" aria-label="Main mobile">
+          {nav.map((item) => (
+            <div key={item.label} className="mb-2">
+              <Link
+                href={item.href}
+                onClick={() => setMobileOpen(false)}
+                className={`block rounded-lg px-3 py-2.5 text-base font-semibold ${
+                  item.match.includes(pathname) ? "bg-canaldeep text-oyster" : "text-ink hover:bg-wetsand/50"
+                }`}
+              >
+                {item.label}
+              </Link>
+              {item.items && (
+                <ul className="mt-1 grid grid-cols-2 gap-1 pl-3">
+                  {item.items
+                    .filter((sub) => sub.href !== item.href)
+                    .map((sub) => (
+                      <li key={sub.href}>
+                        <Link
+                          href={sub.href}
+                          onClick={() => setMobileOpen(false)}
+                          className="block rounded-lg px-3 py-2 text-sm font-semibold text-ink-soft hover:bg-wetsand/50 hover:text-ink"
+                        >
+                          {sub.label}
+                        </Link>
+                      </li>
+                    ))}
+                </ul>
+              )}
+            </div>
+          ))}
         </nav>
       )}
     </header>
@@ -135,14 +167,12 @@ export function SiteHeader() {
  */
 function RolePicker({ role, setRole }: { role: Role; setRole: (r: Role) => void }) {
   return (
-    <label className="flex items-center gap-1.5 rounded-full border border-sand-deep/60 bg-shell px-2.5 py-1.5">
-      <span className="hidden text-[0.68rem] font-bold uppercase tracking-wider text-driftwood sm:inline">
-        Viewing as
-      </span>
+    <label className="flex items-center gap-1.5 rounded-full border border-sandshadow/60 bg-oystercard px-2.5 py-1.5">
+      <span className="label hidden sm:inline">Viewing as</span>
       <select
         value={role}
         onChange={(e) => setRole(e.target.value as Role)}
-        className="bg-transparent text-sm font-bold text-navy outline-none"
+        className="bg-transparent text-sm font-semibold text-canaldeep outline-none"
         aria-label="Switch role (mock)"
       >
         {(Object.keys(roleLabels) as Role[]).map((r) => (

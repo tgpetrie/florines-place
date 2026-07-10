@@ -11,7 +11,7 @@ import type { GuestbookEntry } from "@/lib/types";
 export const guestbookEntries: GuestbookEntry[] = [
   {
     id: "g-1",
-    name: "Your sister",
+    name: "Maya",
     stayDates: "June 12–14, 2026",
     message:
       "Rained the whole first day and none of us minded. We played the card games from the hutch and ate too much bread. The kids fell asleep before nine both nights, which the cabin somehow always does to them.",
@@ -44,7 +44,7 @@ export const guestbookEntries: GuestbookEntry[] = [
   },
   {
     id: "g-4",
-    name: "Your mother",
+    name: "Linda",
     stayDates: "March 14–16, 2026",
     message:
       "I came alone this time. I sat in Florine's chair by the window and did the crossword like she used to, and it was a hard, good, quiet weekend. This entry is just for the family that keeps this place.",

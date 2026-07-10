@@ -40,7 +40,7 @@ export const stayRequests: StayRequest[] = [
   },
   {
     id: "sr-3",
-    name: "Your sister",
+    name: "Maya",
     contact: "sister@example.com",
     arrival: "2026-07-17",
     departure: "2026-07-19",
@@ -55,7 +55,7 @@ export const stayRequests: StayRequest[] = [
   },
   {
     id: "sr-4",
-    name: "Your mother",
+    name: "Linda",
     contact: "mom@example.com",
     arrival: "2026-08-21",
     departure: "2026-08-24",

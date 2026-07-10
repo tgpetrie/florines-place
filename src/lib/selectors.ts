@@ -2,7 +2,16 @@
  * Small derived-data helpers, kept separate from the mock data so they can
  * survive the move to Supabase (they'd run on query results instead).
  */
-import type { Role, SupplyItem, SupplyStatus, TideEvent, Visibility } from "@/lib/types";
+import type {
+  CalendarEvent,
+  CleaningFeeStatus,
+  Role,
+  StayRequest,
+  SupplyItem,
+  SupplyStatus,
+  TideEvent,
+  Visibility,
+} from "@/lib/types";
 
 /**
  * Visibility gate for guide content. The mock "guest" role represents an
@@ -78,6 +87,95 @@ function tideTimeToMinutes(time: string): number {
   const [clock, meridiem] = time.split(" ");
   const [h, m] = clock.split(":").map(Number);
   return ((h % 12) + (meridiem === "PM" ? 12 : 0)) * 60 + m;
+}
+
+/** Whole nights between two ISO dates. */
+export function nightsBetween(startIso: string, endIso: string): number {
+  const [sy, sm, sd] = startIso.split("-").map(Number);
+  const [ey, em, ed] = endIso.split("-").map(Number);
+  const ms = new Date(ey, em - 1, ed).getTime() - new Date(sy, sm - 1, sd).getTime();
+  return Math.max(1, Math.round(ms / 86_400_000));
+}
+
+/**
+ * "Who's at the Cabin" — current stay, else the next upcoming one, else none.
+ * Pure: the caller passes the data + the mock "today".
+ * BACKEND NOTE: with live data, `today` is the real clock and this reads from
+ * the stays/calendar tables.
+ */
+export interface StayStatusResult {
+  kind: "current" | "next" | "none";
+  name?: string;
+  arrival?: string;
+  departure?: string;
+  nights?: number;
+  guestCount?: number;
+  status?: "approved" | "pending" | "considering";
+  cleaningFee?: CleaningFeeStatus;
+}
+
+export function stayStatus(
+  requests: StayRequest[],
+  events: CalendarEvent[],
+  today: string,
+): StayStatusResult {
+  // Someone here right now?
+  const current = requests.find(
+    (r) => r.status === "approved" && r.arrival <= today && today <= r.departure,
+  );
+  if (current) {
+    return {
+      kind: "current",
+      name: current.name,
+      arrival: current.arrival,
+      departure: current.departure,
+      nights: nightsBetween(current.arrival, current.departure),
+      guestCount: current.guestCount,
+      cleaningFee: current.cleaningFee,
+    };
+  }
+
+  // Otherwise the soonest upcoming stay — approved, pending, or considering.
+  type Upcoming = Required<Pick<StayStatusResult, "name" | "arrival" | "departure" | "status">> & {
+    guestCount?: number;
+    cleaningFee?: CleaningFeeStatus;
+  };
+  const upcoming: Upcoming[] = [];
+
+  for (const r of requests) {
+    if (r.departure >= today && (r.status === "approved" || r.status === "pending")) {
+      upcoming.push({
+        name: r.name,
+        arrival: r.arrival,
+        departure: r.departure,
+        status: r.status,
+        guestCount: r.guestCount,
+        cleaningFee: r.cleaningFee,
+      });
+    }
+  }
+  for (const e of events) {
+    if (e.status === "considering" && e.end >= today) {
+      upcoming.push({ name: e.who, arrival: e.start, departure: e.end, status: "considering" });
+    }
+  }
+
+  upcoming.sort((a, b) => a.arrival.localeCompare(b.arrival));
+  const next = upcoming[0];
+  if (next) {
+    return {
+      kind: "next",
+      name: next.name,
+      arrival: next.arrival,
+      departure: next.departure,
+      nights: nightsBetween(next.arrival, next.departure),
+      guestCount: next.guestCount,
+      status: next.status,
+      cleaningFee: next.cleaningFee,
+    };
+  }
+
+  return { kind: "none" };
 }
 
 /** Format an ISO date like "2026-07-24" as "July 24". */

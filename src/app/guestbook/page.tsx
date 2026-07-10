@@ -32,14 +32,14 @@ export default function GuestbookPage() {
               <h2 className="text-xl text-night">{entry.name}</h2>
               <span className="whitespace-nowrap text-sm text-driftwood">{entry.stayDates}</span>
             </div>
-            <p className="mt-4 leading-relaxed text-ink">{entry.message}</p>
+            <p className="mt-4 font-hand text-xl leading-relaxed text-ink">{entry.message}</p>
 
             {(entry.favoriteMoment || entry.tideNote) && (
               <div className="mt-5 space-y-2 rounded-xl bg-sand/30 p-4 text-sm">
                 {entry.favoriteMoment && (
                   <p className="text-ink-soft">
                     <span className="font-bold text-cedar">Favorite moment: </span>
-                    {entry.favoriteMoment}
+                    <span className="font-hand text-base text-ink">{entry.favoriteMoment}</span>
                   </p>
                 )}
                 {entry.tideNote && (
@@ -73,7 +73,7 @@ export default function GuestbookPage() {
         {/* Placeholder: leaving an entry becomes real with the backend */}
         <div className="rounded-2xl border-2 border-dashed border-sand-deep/70 p-8 text-center">
           <SandDollar className="mx-auto h-8 w-8 text-driftwood" />
-          <p className="mt-3 font-bold text-ink">Stayed recently? Leave a page in the book.</p>
+          <p className="mt-3 font-hand text-2xl text-ink">Stayed recently? Leave a page in the book.</p>
           <p className="mt-1 text-sm text-driftwood">
             Writing entries from the app arrives with the backend — name, dates,
             your words, a favorite moment, a tide note, and someday a photo.

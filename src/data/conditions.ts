@@ -12,6 +12,9 @@
  */
 import type { ForecastDay, TideEvent, TideWindow, WeatherSummary } from "@/lib/types";
 
+/** The mock "today" the whole app reasons from until live data arrives. */
+export const MOCK_TODAY = "2026-07-09";
+
 export const weatherNow: WeatherSummary = {
   asOf: "Thursday, July 9 · placeholder snapshot",
   condition: "Partly sunny, light marine haze",

@@ -6,7 +6,7 @@ import { CalendarBadge } from "@/components/status-badge";
 import { calendarEvents, familyPlans } from "@/data/calendar";
 import { dateRange } from "@/lib/selectors";
 
-export const metadata: Metadata = { title: "Calendar" };
+export const metadata: Metadata = { title: "Availability" };
 
 export default function CalendarPage() {
   const dayMap = buildDayMap(calendarEvents);
@@ -14,12 +14,18 @@ export default function CalendarPage() {
   return (
     <div className="pb-8">
       <PageHeader
-        eyebrow="The tide is out"
-        title="The calendar is open"
+        eyebrow="Availability"
+        title="When can people go?"
         lede="See who's requested dates, what's approved, and what the family is quietly considering — so nobody overlaps and everybody gets their days on the water."
       />
 
       <div className="mx-auto max-w-5xl px-4 sm:px-6">
+        <div className="mb-8 flex justify-center">
+          <Link href="/request" className="btn btn-primary">
+            Request a Stay
+          </Link>
+        </div>
+
         <CalendarLegend />
 
         <div className="mt-8 grid gap-6 lg:grid-cols-2">

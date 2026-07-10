@@ -24,12 +24,45 @@
   --color-ink: #2e2921; /* warm near-black for text */
   --color-ink-soft: #5c5548; /* softened text */
 
-  /* Type */
+  /* Warm middle-tone palette — added for the Home visual reset.
+     Additive on purpose: existing tokens above are left untouched so the
+     other pages keep their look. */
+  --color-oystercard: #fff9ee; /* primary warm card */
+  --color-wetsand: #d8c7ad; /* larger soft panels / warm surfaces */
+  --color-sandshadow: #b9a68d; /* warm borders */
+  --color-canal: #607c88; /* Hood Canal blue-gray — tide/weather emphasis */
+  --color-canaldeep: #324f5d; /* deeper calm emphasis */
+  --color-cedarwarm: #8a5a36; /* warm cedar — buttons, links, dividers */
+  --color-cedardark: #5f3a24; /* carved-sign brown */
+
+  /* Type — two families only.
+     Display serif (Fraunces): hero + page/section titles, like a cabin sign.
+     UI sans (Karla): everything else — nav, cards, labels, data, forms. */
   --font-display: var(--font-fraunces), "Georgia", serif;
   --font-body: var(--font-karla), "Helvetica Neue", sans-serif;
+  --font-ui: var(--font-karla), "Helvetica Neue", sans-serif;
+  /* Handwritten accent — a note left at the cabin. Used sparingly. */
+  --font-hand: var(--font-hand-src), "Segoe Print", "Bradley Hand", cursive;
 
   /* Shape */
   --radius-card: 1rem;
+}
+
+/* Type tokens — one scale, applied consistently across the app. */
+:root {
+  --font-size-xs: 0.7rem;
+  --font-size-sm: 0.8125rem;
+  --font-size-base: 1rem;
+  --font-size-lg: 1.125rem;
+  --font-size-xl: 1.375rem;
+  --font-size-2xl: 1.75rem;
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --letter-spacing-label: 0.08em;
+  --line-height-tight: 1.15;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.7;
 }
 
 /* ---------------------------------------------------------------------------
@@ -50,13 +83,21 @@ body {
   );
 }
 
+/* Page + section titles: display serif. Card + sub headings: UI sans. */
 h1,
-h2,
+h2 {
+  font-family: var(--font-display);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: -0.01em;
+  line-height: var(--line-height-tight);
+}
+
 h3,
 h4 {
-  font-family: var(--font-display);
-  font-weight: 500;
-  letter-spacing: -0.01em;
+  font-family: var(--font-ui);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: -0.005em;
+  line-height: var(--line-height-tight);
 }
 
 ::selection {
@@ -109,13 +150,27 @@ h4 {
     background: color-mix(in srgb, var(--color-sand) 40%, transparent);
   }
 
-  .eyebrow {
-    font-family: var(--font-body);
-    font-size: 0.72rem;
-    font-weight: 700;
-    letter-spacing: 0.18em;
+  /* One consistent small-caps label used everywhere (eyebrows, card labels). */
+  .eyebrow,
+  .label {
+    font-family: var(--font-ui);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-semibold);
+    letter-spacing: var(--letter-spacing-label);
     text-transform: uppercase;
     color: var(--color-driftwood);
+  }
+
+  /* Quiet metadata — notes, timestamps, secondary detail. */
+  .metadata {
+    font-family: var(--font-ui);
+    font-size: var(--font-size-sm);
+    color: var(--color-driftwood);
+  }
+
+  /* Tabular figures for data that should line up (tides, temps, dates). */
+  .tnum {
+    font-variant-numeric: tabular-nums;
   }
 }
 
@@ -139,4 +194,106 @@ h4 {
 }
 .rise-3 {
   animation: rise 700ms cubic-bezier(0.2, 0.7, 0.3, 1) 240ms both;
+}
+
+/* ---------------------------------------------------------------------------
+   Home / cabin motifs — slow, atmospheric, never blocking.
+   Movement lives in decorative layers only, not behind reading text.
+--------------------------------------------------------------------------- */
+
+/* Moonlight drifting slowly across the tide line beneath the hero */
+@keyframes tide-shimmer {
+  0% {
+    transform: translateX(-8%);
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 0.6;
+  }
+  100% {
+    transform: translateX(8%);
+    opacity: 0.35;
+  }
+}
+.tide-shimmer {
+  animation: tide-shimmer 11s ease-in-out infinite alternate;
+}
+
+/* Faint tide lines drifting horizontally */
+@keyframes tide-drift {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-24px);
+  }
+}
+.tide-drift {
+  animation: tide-drift 18s ease-in-out infinite alternate;
+}
+
+/* A warm cabin window that gently breathes to life, then settles */
+@keyframes cabin-glow {
+  0% {
+    opacity: 0.15;
+  }
+  55% {
+    opacity: 0.85;
+  }
+  100% {
+    opacity: 0.5;
+  }
+}
+.cabin-glow {
+  animation: cabin-glow 3.4s ease-in-out 400ms both;
+  transform-origin: center;
+}
+
+/* A single eagle silhouette gliding across once on load.
+   Uses user-space units (px == SVG user unit) so it crosses the whole scene. */
+@keyframes eagle-glide {
+  0% {
+    transform: translate(-140px, 10px);
+    opacity: 0;
+  }
+  14% {
+    opacity: 0.4;
+  }
+  86% {
+    opacity: 0.4;
+  }
+  100% {
+    transform: translate(1320px, -24px);
+    opacity: 0;
+  }
+}
+.eagle-glide {
+  animation: eagle-glide 17s ease-in-out 1.2s both;
+}
+
+/* Forecast rows unfolding like a tide table */
+@keyframes unfold {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.unfold {
+  animation: unfold 420ms ease-out both;
+}
+
+/* ---------------------------------------------------------------------------
+   Respect reduced-motion — atmosphere is optional, never required.
+--------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

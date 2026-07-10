@@ -14,7 +14,7 @@ export const calendarEvents: CalendarEvent[] = [
     start: "2026-07-17",
     end: "2026-07-19",
     status: "approved",
-    who: "Your sister",
+    who: "Maya",
     label: "Approved Stay",
   },
   {
@@ -38,7 +38,7 @@ export const calendarEvents: CalendarEvent[] = [
     start: "2026-08-01",
     end: "2026-08-02",
     status: "maintenance",
-    who: "Your dad",
+    who: "Paul",
     label: "Deck boards + gutter check",
   },
   {
@@ -54,7 +54,7 @@ export const calendarEvents: CalendarEvent[] = [
     start: "2026-08-14",
     end: "2026-08-16",
     status: "considering",
-    who: "You + sister",
+    who: "Sam + Maya",
     label: "Family considering",
   },
   {
@@ -62,7 +62,7 @@ export const calendarEvents: CalendarEvent[] = [
     start: "2026-08-21",
     end: "2026-08-24",
     status: "approved",
-    who: "Your mother",
+    who: "Linda",
     label: "Approved Stay",
   },
   {
@@ -86,7 +86,7 @@ export const calendarEvents: CalendarEvent[] = [
 export const familyPlans: FamilyPlan[] = [
   {
     id: "fp-1",
-    who: "You",
+    who: "Sam",
     window: "Mid-August (14th–16th)",
     intent: "Thinking about going",
     mode: "Open to sharing",
@@ -94,7 +94,7 @@ export const familyPlans: FamilyPlan[] = [
   },
   {
     id: "fp-2",
-    who: "Your dad",
+    who: "Paul",
     window: "First weekend of August",
     intent: "Confirmed",
     mode: "Maintenance trip",
@@ -102,14 +102,14 @@ export const familyPlans: FamilyPlan[] = [
   },
   {
     id: "fp-3",
-    who: "Your sister",
+    who: "Maya",
     window: "Sometime in September",
     intent: "Planning to go",
     mode: "Private family time",
   },
   {
     id: "fp-4",
-    who: "Your mother",
+    who: "Linda",
     window: "Any nice Tuesday",
     intent: "Thinking about going",
     mode: "Day trip only",

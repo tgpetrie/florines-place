@@ -346,6 +346,97 @@ export interface LocalPlace {
   status: PlaceStatus;
 }
 
+// --- Place Signals -----------------------------------------------------------
+
+/**
+ * Small seasonal / situational field notes from the cabin — crabbing season,
+ * shellfish safety, burn bans, wood-stove season, blackberries, eagle/deer,
+ * the cliff stairs, the dinghy, an occasional submarine. Calm and useful, not
+ * alerts. Anything about harvesting or fire carries requiresOfficialCheck +
+ * lastVerified and never states rules as truth.
+ *
+ * BACKEND NOTE: becomes an admin-editable `place_signals` table; `isActive`
+ * (and later startDate/endDate vs. the real clock) decides what shows.
+ */
+export type SignalCategory =
+  | "seasonal"
+  | "tide"
+  | "weather"
+  | "fire"
+  | "wood-stove"
+  | "crabbing"
+  | "shellfish"
+  | "fishing"
+  | "safety"
+  | "wildlife"
+  | "family"
+  | "maintenance"
+  | "beach-access"
+  | "dinghy"
+  | "local-event"
+  | "quirky";
+
+export type SignalSeverity = "note" | "reminder" | "important" | "safety";
+
+export type SignalMotif =
+  | "crab"
+  | "geoduck"
+  | "oyster"
+  | "sanddollar"
+  | "blackberry"
+  | "cedar"
+  | "woodstove"
+  | "firewood"
+  | "flame"
+  | "eagle"
+  | "deer"
+  | "tide"
+  | "moon"
+  | "stairs"
+  | "dinghy"
+  | "submarine"
+  | "lantern";
+
+export interface PlaceSignal {
+  id: string;
+  title: string;
+  shortLabel: string;
+  message: string;
+  category: SignalCategory;
+  severity: SignalSeverity;
+  season?: string;
+  startDate?: string; // ISO
+  endDate?: string; // ISO
+  icon: SignalMotif;
+  motif: SignalMotif;
+  visibility: Visibility;
+  linkText?: string;
+  linkHref?: string;
+  sourceType?: string; // e.g. "WDFW", "DOH", "local fire authority"
+  sourceUrl?: string; // official-source placeholder
+  lastVerified?: string; // ISO
+  requiresOfficialCheck: boolean;
+  isActive: boolean;
+}
+
+// --- Porch Notes (family message board) ---------------------------------------
+
+/**
+ * Simple family message thread — informal cabin conversation.
+ * Not tied to a specific stay. Think of it as the cabin's porch whiteboard.
+ * BACKEND NOTE: becomes a `porch_notes` table; visibility gates show/hide
+ * messages appropriately. `stayId` optionally ties a note to a stay.
+ */
+export interface PorchNote {
+  id: string;
+  author: string;
+  initials: string;
+  message: string;
+  postedAt: string; // ISO datetime
+  visibility: Visibility;
+  stayId?: string; // optional — if set, note belongs to a specific stay thread
+}
+
 // --- Fishing, crabbing & shellfish -------------------------------------------
 
 /**

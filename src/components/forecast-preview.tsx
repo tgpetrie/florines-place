@@ -1,30 +1,33 @@
 "use client";
 
 /**
- * Home-page forecast: shows the next three days, expands inline to ten.
- * Data is mock (see src/data/conditions.ts). The 3 → 10 expansion needs no
- * layout change — it just renders more of the same array.
+ * Home-page forecast: shows the next three days, expands inline to ten like a
+ * tide table unfolding. Data is mock (see src/data/conditions.ts). The 3 → 10
+ * expansion needs no layout change — it just renders more of the same array,
+ * with the extra rows unfolding in.
  */
 
 import { useState } from "react";
 import Link from "next/link";
 import type { ForecastDay } from "@/lib/types";
 
-function DayRow({ day, featured }: { day: ForecastDay; featured?: boolean }) {
+function DayRow({ day, featured, animate }: { day: ForecastDay; featured?: boolean; animate?: boolean }) {
   return (
     <div
-      className={`flex flex-wrap items-center gap-x-4 gap-y-1 rounded-xl px-4 py-3 ${
-        featured ? "bg-sand/40" : "bg-oyster/60"
-      }`}
+      className={`flex flex-wrap items-center gap-x-4 gap-y-1 rounded-xl px-4 py-2.5 ${
+        featured ? "bg-wetsand/40" : ""
+      } ${animate ? "unfold" : ""}`}
     >
-      <span className="w-24 shrink-0 font-bold text-night">{day.label}</span>
+      <span className="w-24 shrink-0 font-semibold text-cedardark">{day.label}</span>
       <span className="min-w-40 flex-1 text-sm text-ink-soft">{day.summary}</span>
-      <span className="text-sm font-bold text-ink">
+      <span className="tnum text-sm font-semibold text-ink">
         {day.highF}° <span className="font-normal text-driftwood">/ {day.lowF}°</span>
       </span>
-      <span className="w-16 text-sm text-tide">{day.rainChance} rain</span>
-      <span className="w-44 text-sm text-cedar">Low {day.lowTide}</span>
-      {day.tideNote && <span className="w-full text-sm italic text-ink-soft sm:pl-24">{day.tideNote}</span>}
+      <span className="tnum w-16 text-sm text-canal">{day.rainChance} rain</span>
+      <span className="tnum w-44 text-sm text-cedarwarm">Low {day.lowTide}</span>
+      {day.tideNote && (
+        <span className="w-full text-sm italic text-driftwood sm:pl-24">{day.tideNote}</span>
+      )}
     </div>
   );
 }
@@ -35,17 +38,17 @@ export function ForecastPreview({ days }: { days: ForecastDay[] }) {
 
   return (
     <div>
-      <div className="space-y-2">
+      <div className="divide-y divide-sandshadow/30">
         {shown.map((day, i) => (
-          <DayRow key={day.date} day={day} featured={i === 0} />
+          <DayRow key={day.date} day={day} featured={i === 0} animate={expanded && i >= 3} />
         ))}
       </div>
 
-      <div className="mt-4 flex flex-wrap items-center gap-4">
+      <div className="mt-4 flex flex-wrap items-center gap-4 border-t border-sandshadow/30 pt-3">
         <button
           type="button"
           onClick={() => setExpanded((v) => !v)}
-          className="text-sm font-bold text-navy underline underline-offset-2 hover:text-night"
+          className="text-sm font-bold text-cedarwarm underline underline-offset-2 hover:text-cedardark"
         >
           {expanded ? "Show three days" : "View 10-day outlook"}
         </button>
@@ -53,7 +56,7 @@ export function ForecastPreview({ days }: { days: ForecastDay[] }) {
           href="/local#conditions"
           className="text-sm font-bold text-driftwood underline underline-offset-2 hover:text-ink"
         >
-          Full conditions & tides →
+          Full conditions &amp; tides →
         </Link>
       </div>
     </div>

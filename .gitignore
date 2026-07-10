@@ -23,3 +23,6 @@ yarn-error.log*
 
 # typescript
 *.tsbuildinfo
+
+# Playwright CLI debug logs (ephemeral)
+.playwright-cli/

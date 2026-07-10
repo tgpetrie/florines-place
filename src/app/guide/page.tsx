@@ -16,6 +16,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useRole } from "@/lib/role-context";
 import { GuideIcon } from "@/components/guide-icons";
+import { PlaceSignalsDetailed } from "@/components/place-signals";
 import {
   contactsPrivacyNote,
   emergencyInfo,
@@ -275,7 +276,8 @@ export default function GuidePage() {
                 "Turn on the water if needed",
                 "Turn on the water heater if needed",
                 "Start heat if needed",
-                "Use bottled water for drinking",
+                "Filtered water: small faucet beside the sink",
+                "Note: motion-sensor faucet — double-check it stops",
               ]}
             />
             <button
@@ -369,6 +371,18 @@ export default function GuidePage() {
             </Link>
           </section>
         </div>
+
+        {/* Place Signals — seasonal / situational field notes with sources */}
+        <section className="mt-14">
+          <div className="flex items-baseline justify-between">
+            <h2 className="text-2xl text-night">Place Signals</h2>
+            <span className="text-sm text-driftwood">What&rsquo;s happening around the cabin</span>
+          </div>
+          <p className="metadata mt-1 mb-4">
+            Small seasonal notes. Harvesting, fishing, crab pots, and outdoor fires always need an official rule check.
+          </p>
+          <PlaceSignalsDetailed />
+        </section>
 
         {/* Full Guide — accordions, closed by default except the open one */}
         <section className="mt-14">

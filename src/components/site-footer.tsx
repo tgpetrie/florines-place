@@ -6,8 +6,6 @@ export function SiteFooter() {
       <TideLine className="mb-6" />
       <p className="mx-auto max-w-md text-sm leading-relaxed text-ink-soft">
         Florine&rsquo;s Place · Hood Canal, Washington
-        <br />
-        Built by Florine in the early 1980s. Kept by her family, for her family.
       </p>
       <p className="mt-4 text-xs text-driftwood">
         A shared family place, cared for together.
