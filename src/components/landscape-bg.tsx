@@ -201,8 +201,20 @@ function MountainSilhouettes({ state }: { state: SkyState; className?: string })
 // Main export
 // ---------------------------------------------------------------------------
 
-export function LandscapeBackground({ className = "" }: { className?: string }) {
-  const state = getSkyState();
+export function LandscapeBackground({
+  className = "",
+  sky = "day",
+}: {
+  className?: string;
+  /**
+   * Which sky to render. Defaults to a fixed bright "day" so the welcome hero
+   * looks the same at any hour. Pass "auto" to bring back the time-of-day
+   * behaviour (day → sunset → dusk → night from the local clock), or pin any
+   * specific state.
+   */
+  sky?: SkyState | "auto";
+}) {
+  const state: SkyState = sky === "auto" ? getSkyState() : sky;
   const lunar = getLunarPhase();
   const pal = SKY[state];
   const showStars = state === "night" || state === "dusk";
