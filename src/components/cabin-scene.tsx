@@ -93,35 +93,19 @@ export function CabinScene({ className = "" }: { className?: string }) {
         </linearGradient>
       </defs>
 
-      {/* Distant forest in front of the mountain peaks — a hazy evergreen band
-          along the far ridge, so the mountains rise behind a forested slope
-          rather than straight out of the water. Two layered rows give depth;
-          both sit behind the cabin (drawn before it). */}
-      <g>
-        {/* farthest, haziest row — reads as blue-green distance */}
-        <g opacity="0.26">
-          {(
-            [
-              [70, 74, 30], [122, 70, 40], [176, 73, 34], [236, 68, 46], [300, 72, 38],
-              [372, 69, 50], [446, 73, 36], [522, 70, 48], [600, 67, 54], [684, 71, 44],
-              [760, 69, 50], [840, 72, 38], [916, 70, 46], [992, 73, 34], [1066, 70, 42],
-              [1132, 73, 32],
-            ] as [number, number, number][]
-          ).map(([x, b, h], i) => (
-            <Fir key={`far-${i}`} x={x} baseY={b} h={h} w={h * 0.4} stroke="#6f8a80" fill="#6f8a80" />
-          ))}
-        </g>
-        {/* nearer distant row — a touch greener and taller */}
-        <g opacity="0.34">
-          {(
-            [
-              [100, 86, 46], [212, 83, 56], [332, 87, 48], [470, 82, 60], [610, 84, 52],
-              [742, 83, 56], [882, 86, 48], [1012, 83, 54], [1104, 87, 42],
-            ] as [number, number, number][]
-          ).map(([x, b, h], i) => (
-            <Fir key={`mid-${i}`} x={x} baseY={b} h={h} w={h * 0.42} stroke="#54705a" fill="#54705a" />
-          ))}
-        </g>
+      {/* faint forest silhouette on the ridge, for depth */}
+      <g opacity="0.16">
+        {[
+          [360, 150, 44],
+          [410, 146, 60],
+          [470, 140, 70],
+          [560, 132, 78],
+          [640, 138, 66],
+          [710, 146, 58],
+          [770, 150, 48],
+        ].map(([x, b, h], i) => (
+          <Fir key={`bg-${i}`} x={x} baseY={b} h={h} w={h * 0.42} stroke="#746a5d" fill="#746a5d" />
+        ))}
       </g>
 
       {/* Hood Canal water */}
@@ -227,14 +211,6 @@ export function CabinScene({ className = "" }: { className?: string }) {
           <path d="M1120 166 Q 1123 162 1121 159" strokeWidth="1" />
         </g>
       </g>
-
-      {/* deeper, darker firs filling the ridge directly behind the cabin, so it
-          nestles into the forest instead of standing alone. Drawn first (and
-          off to the sides) so the lighter foreground trees and the cabin sit
-          in front of them. */}
-      <Fir x={452} baseY={130} h={82} w={27} stroke="#3f5c46" trunk="#5a3f28" opacity={0.6} lean={-2} />
-      <Fir x={648} baseY={132} h={86} w={29} stroke="#3f5c46" trunk="#5a3f28" opacity={0.62} lean={2} />
-      <Fir x={702} baseY={138} h={70} w={24} stroke="#46654d" trunk="#5a3f28" opacity={0.55} />
 
       {/* mid + foreground trees around and behind the cabin, varied heights */}
       <Fir x={300} baseY={150} h={40} w={18} stroke="#5e7d63" opacity={0.75} />
