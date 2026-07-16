@@ -80,6 +80,18 @@ export function SiteHeader() {
                 className="relative"
                 onMouseEnter={() => setHovered(item.label)}
                 onMouseLeave={() => setHovered(null)}
+                onFocusCapture={() => setHovered(item.label)}
+                onBlurCapture={(event) => {
+                  if (!event.currentTarget.contains(event.relatedTarget)) {
+                    setHovered(null);
+                  }
+                }}
+                onKeyDown={(event) => {
+                  if (event.key === "Escape") {
+                    setHovered(null);
+                    event.currentTarget.querySelector<HTMLAnchorElement>("a")?.focus();
+                  }
+                }}
               >
                 <Link
                   href={item.href}
@@ -115,6 +127,7 @@ export function SiteHeader() {
             type="button"
             className="rounded-full border-2 border-canal/40 px-3 py-1.5 text-sm font-semibold text-canaldeep lg:hidden"
             aria-expanded={mobileOpen}
+            aria-controls="mobile-navigation"
             aria-label="Toggle menu"
             onClick={() => setMobileOpen((v) => !v)}
           >
@@ -124,7 +137,11 @@ export function SiteHeader() {
       </div>
 
       {mobileOpen && (
-        <nav className="border-t border-sandshadow/40 bg-oyster px-4 py-3 lg:hidden" aria-label="Main mobile">
+        <nav
+          id="mobile-navigation"
+          className="border-t border-sandshadow/40 bg-oyster px-4 py-3 lg:hidden"
+          aria-label="Main mobile"
+        >
           {nav.map((item) => (
             <div key={item.label} className="mb-2">
               <Link

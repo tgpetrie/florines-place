@@ -227,6 +227,7 @@ export default function GuidePage() {
           <button
             type="button"
             aria-expanded={open}
+            aria-controls={`acc-panel-${id}`}
             onClick={() => setOpenId(open ? "" : id)}
             className="flex w-full items-center gap-3 py-4 text-left"
           >
@@ -245,7 +246,11 @@ export default function GuidePage() {
             </svg>
           </button>
         </h3>
-        {open && <div className="pb-6">{children}</div>}
+        {open && (
+          <div id={`acc-panel-${id}`} className="pb-6">
+            {children}
+          </div>
+        )}
       </div>
     );
   }

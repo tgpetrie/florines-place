@@ -13,7 +13,7 @@
  * Hero text sits at z-20.
  */
 
-import { getSkyState, getLunarPhase } from "@/lib/sky-state";
+import { getSkyState, getWarmSkyState, getLunarPhase } from "@/lib/sky-state";
 import type { SkyState } from "@/lib/sky-state";
 
 // ---------------------------------------------------------------------------
@@ -203,18 +203,20 @@ function MountainSilhouettes({ state }: { state: SkyState; className?: string })
 
 export function LandscapeBackground({
   className = "",
-  sky = "day",
+  sky = "warm",
 }: {
   className?: string;
   /**
-   * Which sky to render. Defaults to a fixed bright "day" so the welcome hero
-   * looks the same at any hour. Pass "auto" to bring back the time-of-day
-   * behaviour (day → sunset → dusk → night from the local clock), or pin any
-   * specific state.
+   * Which sky to render:
+   *   "warm" (default) – day ↔ sunset only: bright day most hours, a golden
+   *                      sunset in the evening, never the dark dusk/night.
+   *   "auto"           – full time-of-day (day → sunset → dusk → night).
+   *   a specific state – pin "day" / "sunset" / "dusk" / "night".
    */
-  sky?: SkyState | "auto";
+  sky?: SkyState | "auto" | "warm";
 }) {
-  const state: SkyState = sky === "auto" ? getSkyState() : sky;
+  const state: SkyState =
+    sky === "warm" ? getWarmSkyState() : sky === "auto" ? getSkyState() : sky;
   const lunar = getLunarPhase();
   const pal = SKY[state];
   const showStars = state === "night" || state === "dusk";

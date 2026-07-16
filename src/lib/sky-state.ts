@@ -56,6 +56,16 @@ export function getSkyState(now: Date = new Date()): SkyState {
   return "day";
 }
 
+/**
+ * "Warm" sky: only ever bright day or a golden sunset — never the dark
+ * dusk/night. Shows the sunset palette during the evening golden-hour window
+ * and bright day at every other hour (including deep night), so a family
+ * welcome page always reads bright and warm, never gloomy.
+ */
+export function getWarmSkyState(now: Date = new Date()): SkyState {
+  return getSkyState(now) === "sunset" ? "sunset" : "day";
+}
+
 /** Julian date from a JS Date. */
 function toJulian(d: Date): number {
   return d.getTime() / 86400000 + 2440587.5;

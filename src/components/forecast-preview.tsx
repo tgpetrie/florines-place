@@ -38,7 +38,7 @@ export function ForecastPreview({ days }: { days: ForecastDay[] }) {
 
   return (
     <div>
-      <div className="divide-y divide-sandshadow/30">
+      <div id="forecast-outlook" className="divide-y divide-sandshadow/30">
         {shown.map((day, i) => (
           <DayRow key={day.date} day={day} featured={i === 0} animate={expanded && i >= 3} />
         ))}
@@ -48,6 +48,8 @@ export function ForecastPreview({ days }: { days: ForecastDay[] }) {
         <button
           type="button"
           onClick={() => setExpanded((v) => !v)}
+          aria-expanded={expanded}
+          aria-controls="forecast-outlook"
           className="text-sm font-bold text-cedarwarm underline underline-offset-2 hover:text-cedardark"
         >
           {expanded ? "Show three days" : "View 10-day outlook"}
