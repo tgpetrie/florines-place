@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { CSSProperties } from "react";
 import { LandscapeBackground } from "@/components/landscape-bg";
 import { CabinScene } from "@/components/cabin-scene";
 import { FormlineCrest } from "@/components/formline-crest";
@@ -35,10 +36,13 @@ export default function HomePage() {
       */}
       <section
         className="relative overflow-hidden"
-        style={{ minHeight: "clamp(22rem, 46vw, 34rem)" }}
+        style={{
+          minHeight: "clamp(27rem, 54vw, 35rem)",
+          "--scene-height": "clamp(12rem, 21vw, 21rem)",
+        } as CSSProperties}
       >
         <LandscapeBackground className="absolute inset-0 h-full w-full" />
-        <CabinScene className="absolute inset-x-0 bottom-0 z-10 h-44 w-full sm:h-52" />
+        <CabinScene className="absolute inset-x-0 bottom-0 z-10 h-[var(--scene-height)] w-full" />
 
         {/* Hero text — upper-centre, over open sky */}
         <div className="relative z-20 mx-auto max-w-3xl px-6 pt-12 pb-8 text-center sm:pt-16">

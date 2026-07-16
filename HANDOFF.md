@@ -1,91 +1,84 @@
-# Handoff — Hero scene: dense grove, formline sun, totem, headline crests
+# Handoff — Florine's Place hero scene
 
-This branch (`hero-native-motifs`) ports a Figma design pass into the home hero
-and adds Pacific-Northwest-Coast-inspired motifs. It's a **work in progress** —
-three items are still open (see **TODO** below). Continue from here.
+This handoff is written to be usable from Codex, local Claude, or Claude Cloud.
 
-## What this branch does (done)
+## Start here
 
-- **Dense grove** around the cabin — `src/components/cabin-scene.tsx`. A seeded,
-  module-load generator (`GROVE`) builds a packed, layered stand (back / mid /
-  front rows), mixing hollow line-firs with solid green + carved-brown filled
-  firs. Deterministic on purpose (fixed seed, **no `Math.random` in render**) so
-  server and client hydration match.
-- **Filled firs** — a few foreground firs use `fill="#37613f"` + `stroke="#5f3a24"`.
-- **Totem post** — `Totem` in `cabin-scene.tsx`: an original, stylized carved
-  post (thunderbird / bear / orca) beside the cabin.
-- **Formline sun** — `src/components/formline-sun.tsx`, wired into the hero via
-  `src/components/landscape-bg.tsx` (replaces the old CSS sun disc). Smiling
-  sun-mask with ovoid eyes, U-forms, 8 pointed rays.
-- **Headline crests** — `src/components/formline-crest.tsx`, bracketing the
-  "Florine's Place" wordmark in `src/app/page.tsx` (`hidden sm:block` — desktop
-  only, keeps the mobile title clean).
+- Actual app repo: `/Users/cdmxx/Florines Place`
+- Do not work from `/Users/cdmxx/Documents/TomsTech` for this task. That is a different project and was initially a source of confusion.
+- Current branch: `hero-native-motifs`
+- Upstream: `origin/hero-native-motifs`
 
-Verified: `npx tsc --noEmit` clean, no console errors, renders on desktop +
-mobile (crests correctly hidden on mobile).
+## What changed on July 16, 2026
 
-## Cultural note (please preserve)
+- Warmed the hero shoreline and bluff in [src/components/cabin-scene.tsx](/Users/cdmxx/Florines Place/src/components/cabin-scene.tsx) so the gray, muddy strip now reads as ivory / warm beige.
+- Reduced the harsh pebble / driftwood clutter and softened shoreline texture so it feels calmer.
+- Increased tree diversity in the same file:
+  - wider size range
+  - wider lean range
+  - depth-based color variation instead of one repeated green
+- Added more canopy headroom by changing the scene viewBox and hero sizing in [src/app/page.tsx](/Users/cdmxx/Florines Place/src/app/page.tsx), which prevents the treetops from feeling chopped off.
+- Kept the existing formline sky work in place:
+  - [src/components/landscape-bg.tsx](/Users/cdmxx/Florines Place/src/components/landscape-bg.tsx)
+  - [src/components/formline-moon.tsx](/Users/cdmxx/Florines Place/src/components/formline-moon.tsx)
 
-Hood Canal is Coast Salish (Twana / Skokomish) land. All of these are **original,
-stylized homages in the Northwest-Coast idiom — NOT reproductions** of any
-nation's real crest, pole, or mask (which carry family / spiritual meaning). The
-intent is documented in each component's header comment; keep that framing.
+## Files currently changed on this branch
 
-## TODO (open items, in priority order)
+- [src/app/page.tsx](/Users/cdmxx/Florines Place/src/app/page.tsx)
+- [src/components/cabin-scene.tsx](/Users/cdmxx/Florines Place/src/components/cabin-scene.tsx)
+- [src/components/landscape-bg.tsx](/Users/cdmxx/Florines Place/src/components/landscape-bg.tsx)
+- [src/components/formline-moon.tsx](/Users/cdmxx/Florines Place/src/components/formline-moon.tsx)
 
-### 1. ~~Trees floating above the ground~~ — FIXED
-Resolved: the `GROVE` generator now plants every trunk on a `groundY(x)` helper
-that evaluates the *same* piecewise-quadratic land-crest curve the scene draws
-(`250,160 → 560,110 → 870,160 → …`), with only 0–3px positive jitter. Depth now
-comes from size/opacity, not from lifting the base. Filled ratio also raised
-(front ~70%, mid ~55%) to match the screenshot's mostly-solid look.
-Optional future polish: faint ground-shadow ellipses under trunks.
+## Current visual state
 
-### 2. Port the hand-edited staircase from Figma
-The staircase was significantly changed by hand in the Figma file; this branch
-still has the **original** code path:
-`M566 116 L572 130 L596 130 L602 144 L626 144 L676 186` (in `cabin-scene.tsx`,
-the dashed `#8a5a36` path).
-To pull the exact edited geometry, read the Figma file (fileKey below), find the
-dashed vector in the cabin-scene node `3:2`, and export its path:
-```js
-// use_figma against fileKey DvrsFwfr53nq1EeroSks2m
-const scene = await figma.getNodeByIdAsync("3:2");
-const stair = scene.findOne(n => n.type === "VECTOR" && Array.isArray(n.dashPattern) && n.dashPattern.length);
-const svg = String.fromCharCode.apply(null, Array.from(await stair.exportAsync({ format: "SVG" })));
-return svg; // extract the `d` attribute, translate into scene coords, replace the path above
-```
-NOTE: this was blocked by the **Figma Starter-plan MCP rate limit** during the
-session — retry once it resets, or read positions by eye from a screenshot.
+- Homepage hero now renders with a lighter shore and more varied forest depth.
+- The live homepage is using the warm sky path by default.
+- The formline moon exists in code, but the homepage only shows it when the sky state reaches `night` or `dusk`, or when the hero is forced to a night state for testing.
 
-### 3. Night moon — a formline moon to match the sun
-For the night / dusk sky state, add a formline-styled moon analogous to
-`FormlineSun`. The moon lives in `landscape-bg.tsx` (`Moon` component, currently
-a CSS disc with a phase mask). Build a `FormlineMoon` (new file, same original-
-homage framing) — a pale sun-mask sibling (cool palette: `#e9edf3` face, navy
-`#131a38` carving, muted teal accents), and render it in `Moon` for
-`state === "night" || state === "dusk"`. Keep or simplify the existing lunar-
-phase logic (`getLunarPhase`).
-NOTE: the hero is currently locked to a warm day↔sunset sky (`sky="warm"`), so
-the moon only shows if the sky state logic is changed to `"auto"` or pinned to
-`"night"` — test with `<LandscapeBackground sky="night" />` locally.
+## Verification already run
 
-## Figma source
-
-- File: **Florine's Place — Home / Hero** — https://www.figma.com/design/DvrsFwfr53nq1EeroSks2m
-- fileKey: `DvrsFwfr53nq1EeroSks2m` (owned by tgpetrie@gmail.com / "Treal" team)
-- One-way snapshot: Figma edits do **not** sync back to code — port by hand.
-
-## Run / verify
+- Typecheck passed:
 
 ```bash
-npm run dev          # http://localhost:3000
-npx tsc --noEmit     # typecheck (should be clean)
+./node_modules/.bin/tsc --noEmit --pretty false
 ```
 
-## Key palette values
+- Visual verification was done against the running app at `http://localhost:3000`.
 
-- Grove: fill `#37613f`, stroke `#5f3a24`, trunk `#6b4a2f`; hollow greens `#4f6d55` / `#5e7d63`
-- Sun/formline: gold `#ffd23f`, orange `#ef8a2a`, carved black `#1a1a1a`, cream `#fff9ee`
-- Crest: cream `#f4efe5`, rust `#b0522c`, brown `#3a2417`, teal `#2f6d6a`
-- Scene coordinate system: `viewBox="0 0 1200 240"`; cabin at x≈544–588; waterline ≈ y168
+## Recommended next tasks
+
+1. Fine-tune the forest composition against owner taste.
+2. Compare the current staircase shape with the Figma source and adjust if needed.
+3. Test hero appearance at mobile, tablet, and desktop widths after any further scene edits.
+4. If desired, add an explicit debug mode to force `day`, `sunset`, or `night` sky for faster visual review.
+
+## Run locally
+
+```bash
+cd "/Users/cdmxx/Florines Place"
+npm run dev
+```
+
+Then open [http://localhost:3000](http://localhost:3000).
+
+## Useful checks
+
+```bash
+cd "/Users/cdmxx/Florines Place"
+git status --short
+./node_modules/.bin/tsc --noEmit --pretty false
+```
+
+## Notes for any agent
+
+- Preserve SSR-safe determinism in the generated grove. Do not introduce `Math.random()` inside render.
+- Preserve the cultural framing comments around the formline / totem motifs. They are original stylized homages, not reproductions.
+- If you change the hero crop again, verify with screenshots, not just by reading the SVG math.
+
+## Suggested continuation prompt
+
+Use this if you want another agent to pick up immediately:
+
+```text
+Continue work in /Users/cdmxx/Florines Place on branch hero-native-motifs. Read HANDOFF.md first, then inspect the homepage hero scene. Verify the current visual state at localhost:3000 before making changes. Focus on refining the Florine's Place hero art, not the unrelated TomsTech repo.
+```

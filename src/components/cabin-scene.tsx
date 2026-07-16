@@ -76,79 +76,189 @@ function Fir({
   );
 }
 
-/** Grove treatment ported from the Figma design pass: some firs are filled a
- *  solid deep green with a carved-brown outline, mixed among the hollow line
- *  firs so the bluff reads full and layered rather than uniform. */
-const GROVE_FILL = "#37613f";
-const GROVE_STROKE = "#5f3a24";
+/** Exact quadratic evaluation for the visible bluff-crest path below. Keeping
+ * this in one shared helper prevents hand-placed and generated trees from
+ * drifting away from the sand surface. */
+function quadraticY(
+  x0: number,
+  y0: number,
+  cx: number,
+  cy: number,
+  x1: number,
+  y1: number,
+  x: number,
+) {
+  const t = Math.max(0, Math.min(1, (x - x0) / (x1 - x0)));
+  const mt = 1 - t;
+  return mt * mt * y0 + 2 * mt * t * cy + t * t * y1;
+}
 
-/** Dense grove ringing the cabin — a full, layered, edge-to-edge stand matching
- *  the Figma design pass. Generated ONCE at module load from a fixed seed, so
- *  the layout is byte-identical on the server and on hydration (never
- *  Math.random in render, which would desync SSR and trigger a mismatch).
- *  Two depth bands: a fainter, smaller back row and a taller front row where
- *  some firs are filled. Tuple: [x, baseY, height, width, opacity, filled, lean]. */
-type FirTuple = [number, number, number, number, number, boolean, number];
+function landGroundY(x: number) {
+  if (x <= 250) return quadraticY(0, 158, 130, 155, 250, 160, x);
+  if (x <= 560) return quadraticY(250, 160, 400, 120, 560, 110, x);
+  if (x <= 870) return quadraticY(560, 110, 720, 120, 870, 160, x);
+  return quadraticY(870, 160, 1006, 156, 1200, 156, x);
+}
+
+type GroveDepth = "back" | "mid" | "front";
+
+type GroveTone = { fill: string; stroke: string; hollow: string; trunk: string; strokeWidth: number };
+
+const GROVE_PALETTE: Record<GroveDepth, GroveTone[]> = {
+  back: [
+    { fill: "#b8c4b4", stroke: "#92a18f", hollow: "#98a89a", trunk: "#8d7c67", strokeWidth: 0.95 },
+    { fill: "#a7b8a8", stroke: "#859786", hollow: "#8ba08e", trunk: "#857460", strokeWidth: 1.0 },
+    { fill: "#9db29f", stroke: "#7d9282", hollow: "#839889", trunk: "#806f5b", strokeWidth: 1.02 },
+  ],
+  mid: [
+    { fill: "#779275", stroke: "#60775f", hollow: "#698167", trunk: "#7b5b40", strokeWidth: 1.15 },
+    { fill: "#688667", stroke: "#557059", hollow: "#5f7a63", trunk: "#74533a", strokeWidth: 1.22 },
+    { fill: "#829a77", stroke: "#667b5f", hollow: "#6d8567", trunk: "#7f5d43", strokeWidth: 1.18 },
+  ],
+  front: [
+    { fill: "#55784f", stroke: "#6a4a31", hollow: "#5d8058", trunk: "#6a4a31", strokeWidth: 1.28 },
+    { fill: "#456c47", stroke: "#5f3a24", hollow: "#4f7850", trunk: "#5f3a24", strokeWidth: 1.36 },
+    { fill: "#62814f", stroke: "#755035", hollow: "#6a8756", trunk: "#755035", strokeWidth: 1.31 },
+  ],
+};
+
+function groveToneFor(depth: GroveDepth, x: number, index: number) {
+  const variants = GROVE_PALETTE[depth];
+  return variants[(index + Math.round(x / 23)) % variants.length];
+}
+
+const WATER_BASE = "#748d96";
+const WATER_LINE = "#efe1c9";
+const WATER_DRIFT = "#34535f";
+const SHORE_SUBMERGED = "#a8b7ac";
+const SHORE_SUBMERGED_LINE = "#c6d1c7";
+const SHORE_BASE = "#f1e3cf";
+const SHORE_TOP_LINE = "#b58051";
+const SHORE_WET = "#d0ba94";
+const SHORE_PATCH = "#cdb697";
+const SHORE_PEBBLE = "#d6c7b0";
+const SHORE_ROCK = "#ab9271";
+const SHORE_DRIFTWOOD = "#8c6948";
+const SHORE_SEAWEED = "#5d795e";
+const TREE_SHADOW = "#8d7658";
+
+/** A full but legible grove matching the Figma composition: more individual
+ * trees than the original scene, with depth carried primarily by graduated
+ * green shades instead of heavy overlap. Generated once from a fixed seed, so
+ * server render and hydration remain byte-identical. Tuple:
+ * [x, baseY, height, width, opacity, depth, filled, lean]. */
+type FirTuple = [number, number, number, number, number, GroveDepth, boolean, number];
 const GROVE: FirTuple[] = (() => {
   let s = 20260716; // fixed seed → deterministic
   const rnd = () => ((s = (s * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff);
-  // Ground surface — the SAME piecewise-quadratic land-crest curve the scene
-  // draws below (see the #d8c7ad land path / #8a5a36 crest). Evaluating it means
-  // every trunk base sits ON the sand at its x, so nothing floats.
-  const seg = (x0: number, y0: number, x1: number, y1: number, x2: number, y2: number, x: number) => {
-    const t = Math.max(0, Math.min(1, (x - x0) / (x2 - x0)));
-    const mt = 1 - t;
-    return mt * mt * y0 + 2 * mt * t * y1 + t * t * y2;
-  };
-  const groundY = (x: number) =>
-    x <= 250 ? seg(0, 158, 130, 155, 250, 160, x)
-    : x <= 560 ? seg(250, 160, 400, 120, 560, 110, x)
-    : x <= 870 ? seg(560, 110, 720, 120, 870, 160, x)
-    : seg(870, 160, 1006, 156, 1200, 156, x);
   const trees: FirTuple[] = [];
-  let x = 130;
-  while (x <= 1070) {
-    const nearCabin = x > 530 && x < 602; // leave the cabin readable
-    // back row — smaller, fainter, hollow; planted on the ground (depth via
-    // size/opacity, NOT by lifting the base)
-    const bx1 = Math.round(x + rnd() * 8 - 4);
-    const hb = 30 + rnd() * 26;
-    trees.push([
-      bx1,
-      Math.round(groundY(bx1) + rnd() * 2),
-      Math.round(hb),
-      Math.round(hb * 0.4),
-      +(0.5 + rnd() * 0.22).toFixed(2),
-      false,
-      Math.round(rnd() * 6 - 3),
-    ]);
-    // mid row — fills the gaps, mostly filled
-    if (rnd() < 0.85) {
-      const bx2 = Math.round(x + rnd() * 10 - 5);
-      const hm = 36 + rnd() * 28;
-      trees.push([
-        bx2,
-        Math.round(groundY(bx2) + rnd() * 2),
-        Math.round(hm),
-        Math.round(hm * 0.4),
-        +(0.66 + rnd() * 0.16).toFixed(2),
-        !nearCabin && rnd() < 0.55,
-        Math.round(rnd() * 6 - 3),
-      ]);
+
+  const addRow = ({
+    depth,
+    start,
+    end,
+    spacing,
+    spacingJitter,
+    heightMin,
+    heightMax,
+    opacityMin,
+    opacityMax,
+    fillChance,
+    apexFloor,
+  }: {
+    depth: GroveDepth;
+    start: number;
+    end: number;
+    spacing: number;
+    spacingJitter: number;
+    heightMin: number;
+    heightMax: number;
+    opacityMin: number;
+    opacityMax: number;
+    fillChance: number;
+    apexFloor: number;
+  }) => {
+    let cursor = start + rnd() * spacing;
+    while (cursor <= end) {
+      const x = Math.round(cursor + rnd() * 8 - 4);
+      const nearCabin =
+        x > (depth === "back" ? 550 : depth === "mid" ? 545 : 535) &&
+        x < (depth === "back" ? 590 : depth === "mid" ? 600 : 610);
+      const nearTotem = depth === "front" && x > 486 && x < 510;
+      const nearStairs = depth === "front" && x > 620 && x < 660;
+
+      // Preserve a clean silhouette around the cabin, carved post, and edited
+      // staircase. The distant row may ghost behind these landmarks.
+      const edgeTaper =
+        x > 900 ? ((x - 900) / 250) * (depth === "front" ? 0.48 : 0.32) : x < 165 ? 0.22 : 0;
+      const skip =
+        nearTotem ||
+        (nearStairs && rnd() < 0.62) ||
+        (nearCabin && (depth === "front" || rnd() < (depth === "mid" ? 0.82 : 0.45))) ||
+        rnd() < edgeTaper;
+
+      if (!skip) {
+        const baseY = landGroundY(x);
+        // Bias toward taller silhouettes while widening the silhouette range so
+        // the grove does not read as a repeated stamp line.
+        const naturalHeight = heightMin + Math.sqrt(rnd()) * (heightMax - heightMin);
+        const h = Math.round(Math.min(naturalHeight, Math.max(28, baseY - apexFloor)));
+        trees.push([
+          x,
+          +baseY.toFixed(1),
+          h,
+          Math.round(h * (0.34 + rnd() * 0.22)),
+          +(opacityMin + rnd() * (opacityMax - opacityMin)).toFixed(2),
+          depth,
+          rnd() < fillChance,
+          Math.round(rnd() * 10 - 5),
+        ]);
+      }
+
+      cursor += spacing + rnd() * spacingJitter;
     }
-    // front row — tallest; mostly filled, but kept light/hollow right at the cabin
-    const h2 = (nearCabin ? 34 : 48) + rnd() * (nearCabin ? 18 : 40);
-    trees.push([
-      x,
-      Math.round(groundY(x) + rnd() * 3),
-      Math.round(h2),
-      Math.round(h2 * 0.4),
-      +((nearCabin ? 0.62 : 0.8) + rnd() * 0.16).toFixed(2),
-      !nearCabin && rnd() < 0.7,
-      Math.round(rnd() * 6 - 3),
-    ]);
-    x += 13 + rnd() * 10;
-  }
+  };
+
+  addRow({
+    depth: "back",
+    start: 125,
+    end: 1080,
+    spacing: 11,
+    spacingJitter: 9,
+    heightMin: 26,
+    heightMax: 72,
+    opacityMin: 0.38,
+    opacityMax: 0.62,
+    fillChance: 0.72,
+    apexFloor: 30,
+  });
+  addRow({
+    depth: "mid",
+    start: 135,
+    end: 1070,
+    spacing: 14,
+    spacingJitter: 10,
+    heightMin: 36,
+    heightMax: 90,
+    opacityMin: 0.56,
+    opacityMax: 0.82,
+    fillChance: 0.82,
+    apexFloor: 28,
+  });
+  addRow({
+    depth: "front",
+    start: 140,
+    end: 1060,
+    spacing: 19,
+    spacingJitter: 14,
+    heightMin: 46,
+    heightMax: 106,
+    opacityMin: 0.82,
+    opacityMax: 0.97,
+    fillChance: 0.92,
+    apexFloor: 24,
+  });
+
   return trees;
 })();
 
@@ -200,11 +310,11 @@ function Totem() {
 export function CabinScene({ className = "" }: { className?: string }) {
   return (
     <svg
-      viewBox="0 0 1200 240"
+      viewBox="0 -14 1200 254"
       fill="none"
       aria-hidden="true"
       className={className}
-      preserveAspectRatio="xMidYMax slice"
+      preserveAspectRatio="xMidYMid slice"
     >
       <defs>
         <linearGradient id="shimmer" x1="0" y1="0" x2="1" y2="0">
@@ -214,35 +324,20 @@ export function CabinScene({ className = "" }: { className?: string }) {
         </linearGradient>
       </defs>
 
-      {/* faint forest silhouette on the ridge, for depth */}
-      <g opacity="0.16">
-        {[
-          [360, 150, 44],
-          [410, 146, 60],
-          [470, 140, 70],
-          [560, 132, 78],
-          [640, 138, 66],
-          [710, 146, 58],
-          [770, 150, 48],
-        ].map(([x, b, h], i) => (
-          <Fir key={`bg-${i}`} x={x} baseY={b} h={h} w={h * 0.42} stroke="#746a5d" fill="#746a5d" />
-        ))}
-      </g>
-
       {/* Hood Canal water */}
       <path
         d="M0 168 Q 150 159 300 166 T 600 164 T 900 166 T 1200 163 L1200 240 L0 240 Z"
-        fill="#607c88"
-        opacity="0.9"
+        fill={WATER_BASE}
+        opacity="0.92"
       />
       <path
         d="M0 168 Q 150 159 300 166 T 600 164 T 900 166 T 1200 163"
-        stroke="#e6d9bf"
+        stroke={WATER_LINE}
         strokeWidth="2"
-        opacity="0.5"
+        opacity="0.62"
       />
       <rect className="tide-shimmer" x="330" y="168" width="460" height="72" fill="url(#shimmer)" />
-      <g className="tide-drift" stroke="#28444f" strokeWidth="1.3" opacity="0.28">
+      <g className="tide-drift" stroke={WATER_DRIFT} strokeWidth="1.3" opacity="0.22">
         <path d="M-60 192 Q 200 186 460 192 T 980 190 T 1400 192" />
         <path d="M-60 212 Q 240 206 500 212 T 1000 210 T 1400 212" />
       </g>
@@ -252,10 +347,10 @@ export function CabinScene({ className = "" }: { className?: string }) {
           the surface, not as dry land. */}
       <path
         d="M0 171 Q 300 173 600 171 Q 900 173 1200 171 L1200 190 Q 900 192 600 190 Q 300 192 0 190 Z"
-        fill="#6f8f88"
-        opacity="0.24"
+        fill={SHORE_SUBMERGED}
+        opacity="0.22"
       />
-      <g stroke="#7fa39c" strokeWidth="1.1" fill="none" opacity="0.3">
+      <g stroke={SHORE_SUBMERGED_LINE} strokeWidth="1.1" fill="none" opacity="0.24">
         <path d="M-40 178 Q 300 175 640 179 T 1240 178" />
         <path d="M-40 186 Q 320 183 660 187 T 1240 186" />
       </g>
@@ -271,21 +366,21 @@ export function CabinScene({ className = "" }: { className?: string }) {
            Q 936 151 1006 157 Q 1088 162 1166 153 Q 1186 151 1200 156
            L1200 171
            Q 1040 174 880 170 Q 720 172 560 170 Q 400 172 240 171 Q 120 172 0 170 Z"
-        fill="#d8c7ad"
-        opacity="0.74"
+        fill={SHORE_BASE}
+        opacity="0.98"
       />
       {/* shore + bluff-crest highlight, now continuous across the whole coast */}
       <path
         d="M0 158 Q 130 155 250 160 Q 400 120 560 110 Q 720 120 870 160 Q 1006 156 1200 156"
-        stroke="#8a5a36"
+        stroke={SHORE_TOP_LINE}
         strokeWidth="1.6"
-        opacity="0.42"
+        opacity="0.34"
       />
       {/* wet shoreline — a damp band along the waterline, darker than dry sand */}
       <path
         d="M0 166 Q 300 169 600 167 Q 900 169 1200 167 L1200 171 Q 900 173 600 171 Q 300 173 0 171 Z"
-        fill="#b09772"
-        opacity="0.55"
+        fill={SHORE_WET}
+        opacity="0.72"
       />
 
       {/* Beach material along the low side shores — pebbles, wet gravel, small
@@ -293,23 +388,23 @@ export function CabinScene({ className = "" }: { className?: string }) {
           it reads as Hood Canal shingle, not a broad sandy beach. */}
       <g>
         {/* damp patches */}
-        <g fill="#9c8663" opacity="0.3">
+        <g fill={SHORE_PATCH} opacity="0.22">
           <ellipse cx="110" cy="168" rx="15" ry="3" />
           <ellipse cx="1030" cy="168" rx="17" ry="3" />
         </g>
         {/* pebbles / wet gravel */}
-        <g fill="#a89a7e" opacity="0.5">
+        <g fill={SHORE_PEBBLE} opacity="0.42">
           {(
             [
-              [30, 164], [52, 167], [78, 163], [104, 166], [132, 162], [160, 165], [188, 161], [214, 164],
-              [915, 163], [944, 166], [972, 162], [1004, 165], [1036, 161], [1070, 164], [1104, 160], [1140, 163], [1172, 165],
+              [42, 164], [70, 166], [108, 163], [144, 165], [186, 162], [222, 164],
+              [930, 163], [968, 166], [1010, 162], [1052, 165], [1096, 161], [1150, 164],
             ] as [number, number][]
           ).map(([cx, cy], i) => (
             <ellipse key={`peb-${i}`} cx={cx} cy={cy} rx={i % 3 === 0 ? 2.8 : 2} ry={i % 3 === 0 ? 1.8 : 1.3} />
           ))}
         </g>
         {/* small rocks */}
-        <g fill="#8a7454" opacity="0.7">
+        <g fill={SHORE_ROCK} opacity="0.46">
           <ellipse cx="66" cy="166" rx="6" ry="3.5" />
           <ellipse cx="150" cy="164" rx="5" ry="3" />
           <ellipse cx="205" cy="167" rx="4.5" ry="2.8" />
@@ -318,14 +413,14 @@ export function CabinScene({ className = "" }: { className?: string }) {
           <ellipse cx="1130" cy="166" rx="4.5" ry="2.8" />
         </g>
         {/* driftwood */}
-        <g stroke="#7a5a3a" fill="none" strokeLinecap="round" opacity="0.7">
+        <g stroke={SHORE_DRIFTWOOD} fill="none" strokeLinecap="round" opacity="0.46">
           <path d="M40 160 Q 58 157 74 161" strokeWidth="2.4" />
           <path d="M175 159 Q 189 157 201 160" strokeWidth="1.8" />
           <path d="M980 159 Q 996 156 1010 160" strokeWidth="2.2" />
           <path d="M1095 158 Q 1108 156 1119 159" strokeWidth="1.7" />
         </g>
         {/* seaweed */}
-        <g stroke="#2f5236" fill="none" strokeLinecap="round" opacity="0.55">
+        <g stroke={SHORE_SEAWEED} fill="none" strokeLinecap="round" opacity="0.42">
           <path d="M90 168 Q 93 164 91 161" strokeWidth="1.1" />
           <path d="M200 167 Q 203 163 201 160" strokeWidth="1" />
           <path d="M1000 167 Q 1003 163 1001 160" strokeWidth="1.1" />
@@ -333,50 +428,41 @@ export function CabinScene({ className = "" }: { className?: string }) {
         </g>
       </g>
 
-      {/* mid + foreground trees around and behind the cabin, varied heights */}
-      <Fir x={300} baseY={150} h={40} w={18} stroke="#5e7d63" opacity={0.75} />
-      <Fir x={340} baseY={144} h={56} w={22} stroke="#4f6d55" opacity={0.8} />
-      <Fir x={470} baseY={128} h={74} w={26} stroke={GROVE_STROKE} fill={GROVE_FILL} trunk="#6b4a2f" opacity={0.85} />
-      <Fir x={508} baseY={120} h={62} w={22} stroke="#5e7d63" opacity={0.7} />
-      <Fir x={628} baseY={122} h={80} w={28} stroke={GROVE_STROKE} fill={GROVE_FILL} trunk="#6b4a2f" opacity={0.86} />
-      <Fir x={672} baseY={130} h={58} w={22} stroke="#5e7d63" opacity={0.72} />
-      <Fir x={735} baseY={140} h={66} w={24} stroke={GROVE_STROKE} fill={GROVE_FILL} trunk="#6b4a2f" opacity={0.84} />
-      <Fir x={800} baseY={150} h={46} w={18} stroke="#5e7d63" opacity={0.7} />
-      <Fir x={840} baseY={156} h={36} w={15} stroke="#746a5d" opacity={0.6} />
+      {/* Small contact shadows seat the nearest trunks on the sand. Their y
+          values come from the same land curve as every tree base. */}
+      <g fill={TREE_SHADOW}>
+        {GROVE.filter(([, , , , , depth]) => depth !== "back").map(([x, b, , w, , depth], i) => (
+          <ellipse
+            key={`tree-shadow-${i}`}
+            cx={x}
+            cy={b + 2.2}
+            rx={Math.max(3, w * 0.36)}
+            ry={depth === "front" ? 1.6 : 1.1}
+            opacity={depth === "front" ? 0.11 : 0.07}
+          />
+        ))}
+      </g>
 
-      {/* added trees — a few more to make the bluff feel wooded. Modest count,
-          brown trunks, muted green, uneven spacing and slight lean. Placed on
-          the upper bluff and where the shoreline meets the bluff, kept clear of
-          the cabin (x 544–588) and the staircase run (x 566–676). */}
-      {/* two medium trees filling the upper bluff */}
-      <Fir x={415} baseY={132} h={70} w={26} stroke="#4f6d55" trunk="#6b4a2f" opacity={0.7} lean={-3} />
-      <Fir x={760} baseY={137} h={60} w={23} stroke="#4f6d55" trunk="#6b4a2f" opacity={0.68} lean={3} />
-      {/* saplings where the low shoreline meets the bluff (left, then right) */}
-      <Fir x={262} baseY={160} h={26} w={11} stroke="#5e7d63" trunk="#6b4a2f" opacity={0.7} lean={-5} />
-      <Fir x={284} baseY={158} h={34} w={14} stroke="#4f6d55" trunk="#6b4a2f" opacity={0.7} lean={4} />
-      <Fir x={858} baseY={160} h={30} w={12} stroke="#4f6d55" trunk="#6b4a2f" opacity={0.7} lean={5} />
-      <Fir x={884} baseY={158} h={24} w={10} stroke="#5e7d63" trunk="#6b4a2f" opacity={0.66} lean={-4} />
-      {/* small gap-fillers on the bluff, off to the sides */}
-      <Fir x={392} baseY={148} h={30} w={12} stroke="#5e7d63" trunk="#6b4a2f" opacity={0.68} lean={-3} />
-      <Fir x={786} baseY={150} h={28} w={11} stroke="#4f6d55" trunk="#6b4a2f" opacity={0.68} lean={3} />
-
-      {/* denser grove ringing the cabin — ported from the Figma design pass.
-          Some firs are filled (green + carved-brown outline), the rest hollow,
-          for a full, layered stand. */}
-      {GROVE.map(([x, b, h, w, op, filled, lean], i) => (
-        <Fir
-          key={`grove-${i}`}
-          x={x}
-          baseY={b}
-          h={h}
-          w={w}
-          opacity={op}
-          lean={lean}
-          trunk="#6b4a2f"
-          fill={filled ? GROVE_FILL : "none"}
-          stroke={filled ? GROVE_STROKE : i % 2 ? "#4f6d55" : "#5e7d63"}
-        />
-      ))}
+      {/* Shade-graded grove: hazy sage in back, medium cedar green through the
+          middle, and darker saturated firs in front. */}
+      {GROVE.map(([x, b, h, w, op, depth, filled, lean], i) => {
+        const palette = groveToneFor(depth, x, i);
+        return (
+          <Fir
+            key={`grove-${i}`}
+            x={x}
+            baseY={b}
+            h={h}
+            w={w}
+            opacity={op}
+            lean={lean}
+            trunk={palette.trunk}
+            fill={filled ? palette.fill : "none"}
+            stroke={filled ? palette.stroke : palette.hollow}
+            strokeWidth={palette.strokeWidth}
+          />
+        );
+      })}
 
       {/* stylized carved post beside the cabin (see Totem note above) */}
       <Totem />
@@ -389,17 +475,16 @@ export function CabinScene({ className = "" }: { className?: string }) {
         <path d="M560 97 L572 97 M566 97 L566 110" strokeWidth="1.3" />
       </g>
 
-      {/* the old cliff stairs: short steep, landing, short steep, landing, then
-          one long run down to the beach. Dashed and light so it reads as steps,
-          not a road. */}
+      {/* Hand-edited Figma staircase: a short, dark switchback tucked into the
+          trees, ending at the shoreline instead of running deep into the water. */}
       <path
-        d="M566 116 L572 130 L596 130 L602 144 L626 144 L676 186"
-        stroke="#8a5a36"
-        strokeWidth="1.6"
-        strokeDasharray="5 4"
+        d="M610 108 C606 117 611 125 619 130 C614 138 620 146 629 150 C625 157 637 163 645 169"
+        stroke="#46545c"
+        strokeWidth="2.4"
+        strokeDasharray="4.5 3.5"
         strokeLinejoin="round"
         strokeLinecap="round"
-        opacity="0.6"
+        opacity="0.86"
       />
 
       {/* a single eagle gliding across, once */}

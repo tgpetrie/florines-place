@@ -15,6 +15,7 @@
 
 import { getSkyState, getWarmSkyState, getLunarPhase } from "@/lib/sky-state";
 import type { SkyState } from "@/lib/sky-state";
+import { FormlineMoon } from "@/components/formline-moon";
 import { FormlineSun } from "@/components/formline-sun";
 
 // ---------------------------------------------------------------------------
@@ -67,16 +68,17 @@ function Sun({ state }: { state: SkyState }) {
   if (state === "night" || state === "dusk") return null;
 
   const isSunset = state === "sunset";
+  const size = isSunset ? 96 : "clamp(64px, 8vw, 86px)";
 
   return (
     <div
       className="pointer-events-none absolute"
       style={{
-        top: isSunset ? "50%" : "11%",
-        right: isSunset ? "auto" : "15%",
+        top: isSunset ? "50%" : "6%",
+        right: isSunset ? "auto" : "clamp(4%, 10vw, 15%)",
         left: isSunset ? "12%" : "auto",
-        width: isSunset ? 96 : 86,
-        height: isSunset ? 96 : 86,
+        width: size,
+        height: size,
       }}
     >
       {/* Outer glow */}
@@ -96,25 +98,29 @@ function Sun({ state }: { state: SkyState }) {
 }
 
 // ---------------------------------------------------------------------------
-// Moon — CSS circle with phase mask, positioned in sky
+// Moon — cool formline face with a lunar-phase shadow
 // ---------------------------------------------------------------------------
 
 function Moon({ state, phase, waxing }: { state: SkyState; phase: number; waxing: boolean }) {
   if (state === "day" || state === "sunset") return null;
 
-  const r = 22;
-  const diameter = r * 2;
+  const diameter = 76;
+  const phaseRadius = 24;
   // How much of the lit side to show (0 = new, 1 = full)
   const lit = phase <= 0.5 ? phase * 2 : (1 - phase) * 2;
   // Shadow offset: negative pushes shadow right (waxing crescent shows left edge lit)
-  const shadowOffset = waxing ? -(r - r * lit) : r - r * lit;
+  const shadowOffset = (
+    waxing
+      ? -(phaseRadius - phaseRadius * lit)
+      : phaseRadius - phaseRadius * lit
+  ).toFixed(2);
 
   return (
     <div
       className="pointer-events-none absolute"
       style={{
-        top: "14%",
-        right: "18%",
+        top: "11%",
+        right: "16%",
         width: diameter,
         height: diameter,
       }}
@@ -127,12 +133,21 @@ function Moon({ state, phase, waxing }: { state: SkyState; phase: number; waxing
           background: "radial-gradient(circle, rgba(233,237,243,0.25) 0%, transparent 70%)",
         }}
       />
-      {/* Lit disc */}
+
+      <FormlineMoon className="relative h-full w-full drop-shadow-sm" />
+
+      {/* The face remains the primary artwork; this clipped overlay softly
+          records the real lunar phase inside its circular disc. */}
       <div
-        className="relative h-full w-full overflow-hidden rounded-full"
-        style={{ background: "#e9edf3", opacity: 0.88 }}
+        className="absolute overflow-hidden rounded-full"
+        style={{
+          left: 14,
+          top: 14,
+          width: phaseRadius * 2,
+          height: phaseRadius * 2,
+          opacity: 0.5,
+        }}
       >
-        {/* Shadow that carves the phase */}
         {phase > 0.03 && phase < 0.97 && (
           <div
             className="absolute inset-0 rounded-full"
@@ -143,7 +158,6 @@ function Moon({ state, phase, waxing }: { state: SkyState; phase: number; waxing
             }}
           />
         )}
-        {/* New moon — completely dark */}
         {(phase <= 0.03 || phase >= 0.97) && (
           <div className="absolute inset-0 rounded-full" style={{ background: "#090f22", opacity: 0.95 }} />
         )}
@@ -210,6 +224,10 @@ export function LandscapeBackground({
   const state: SkyState =
     sky === "warm" ? getWarmSkyState() : sky === "auto" ? getSkyState() : sky;
   const lunar = getLunarPhase();
+  // Date-based lunar math can differ by fractions of a second between SSR and
+  // hydration. Day-scale visual precision is plenty here and keeps the rendered
+  // phase mask stable.
+  const lunarPhase = +lunar.phase.toFixed(4);
   const pal = SKY[state];
   const showStars = state === "night" || state === "dusk";
 
@@ -230,15 +248,18 @@ export function LandscapeBackground({
 
       {/* Sun or Moon — absolutely placed in sky, works at any viewport width */}
       <Sun state={state} />
-      <Moon state={state} phase={lunar.phase} waxing={lunar.waxing} />
+      <Moon state={state} phase={lunarPhase} waxing={lunar.waxing} />
 
       {/* Mountain silhouettes — anchored just above the CabinScene strip.
           CabinScene is h-44 (176px) mobile, h-52 (208px) sm+.
           Mountains sit in a band that starts at the top of the CabinScene
           and extends upward by clamp(60px, 14vw, 120px). */}
       <div
-        className="absolute inset-x-0 bottom-44 sm:bottom-52"
-        style={{ height: "clamp(60px, 14vw, 120px)" }}
+        className="absolute inset-x-0"
+        style={{
+          bottom: "var(--scene-height, 13rem)",
+          height: "clamp(60px, 14vw, 120px)",
+        }}
       >
         <MountainSilhouettes state={state} />
       </div>
