@@ -76,6 +76,113 @@ function Fir({
   );
 }
 
+/** Grove treatment ported from the Figma design pass: some firs are filled a
+ *  solid deep green with a carved-brown outline, mixed among the hollow line
+ *  firs so the bluff reads full and layered rather than uniform. */
+const GROVE_FILL = "#37613f";
+const GROVE_STROKE = "#5f3a24";
+
+/** Dense grove ringing the cabin — a full, layered, edge-to-edge stand matching
+ *  the Figma design pass. Generated ONCE at module load from a fixed seed, so
+ *  the layout is byte-identical on the server and on hydration (never
+ *  Math.random in render, which would desync SSR and trigger a mismatch).
+ *  Two depth bands: a fainter, smaller back row and a taller front row where
+ *  some firs are filled. Tuple: [x, baseY, height, width, opacity, filled, lean]. */
+type FirTuple = [number, number, number, number, number, boolean, number];
+const GROVE: FirTuple[] = (() => {
+  let s = 20260716; // fixed seed → deterministic
+  const rnd = () => ((s = (s * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff);
+  const dune = (x: number) => Math.min(159, 118 + 0.00022 * (x - 560) ** 2);
+  const trees: FirTuple[] = [];
+  let x = 130;
+  while (x <= 1070) {
+    const base = dune(x);
+    const nearCabin = x > 530 && x < 602; // leave the cabin readable
+    // back row — depth: smaller, fainter, always hollow
+    const hb = 30 + rnd() * 26;
+    trees.push([
+      Math.round(x + rnd() * 8 - 4),
+      Math.round(base - 7 - rnd() * 12),
+      Math.round(hb),
+      Math.round(hb * 0.4),
+      +(0.5 + rnd() * 0.22).toFixed(2),
+      false,
+      Math.round(rnd() * 6 - 3),
+    ]);
+    // mid row — fills the gaps, occasional fill
+    if (rnd() < 0.8) {
+      const hm = 36 + rnd() * 28;
+      trees.push([
+        Math.round(x + rnd() * 10 - 5),
+        Math.round(base - 2 + rnd() * 4),
+        Math.round(hm),
+        Math.round(hm * 0.4),
+        +(0.66 + rnd() * 0.16).toFixed(2),
+        !nearCabin && rnd() < 0.4,
+        Math.round(rnd() * 6 - 3),
+      ]);
+    }
+    // front row — tallest; some filled, but kept light/hollow right at the cabin
+    const h2 = (nearCabin ? 34 : 48) + rnd() * (nearCabin ? 18 : 40);
+    trees.push([
+      Math.round(x),
+      Math.round(base + rnd() * 3),
+      Math.round(h2),
+      Math.round(h2 * 0.4),
+      +((nearCabin ? 0.62 : 0.8) + rnd() * 0.16).toFixed(2),
+      !nearCabin && rnd() < 0.48,
+      Math.round(rnd() * 6 - 3),
+    ]);
+    x += 13 + rnd() * 10;
+  }
+  return trees;
+})();
+
+/**
+ * Totem — an original, stylized carved post in the Pacific Northwest Coast
+ * idiom (stacked thunderbird / bear / orca, formline eyes and U-forms), stood
+ * on the bluff beside the cabin. Decorative homage in the cabin palette, NOT a
+ * reproduction of any nation's real pole. Hood Canal is Coast Salish (Twana /
+ * Skokomish) land. Authored in a 64×200 box, scaled down into the scene.
+ */
+function Totem() {
+  return (
+    <g transform="translate(487 71) scale(0.406)" opacity={0.95}>
+      {/* cedar post */}
+      <rect x="18" y="24" width="28" height="176" rx="9" fill="#6d4a33" stroke="#43301f" strokeWidth="2" />
+      {/* thunderbird wings */}
+      <path d="M18 40 Q -4 30 2 54 Q 9 47 18 52 Z" fill="#b0522c" stroke="#43301f" strokeWidth="1.5" />
+      <path d="M46 40 Q 68 30 62 54 Q 55 47 46 52 Z" fill="#b0522c" stroke="#43301f" strokeWidth="1.5" />
+      {/* thunderbird head */}
+      <ellipse cx="32" cy="42" rx="13" ry="11" fill="#1a1a1a" />
+      <ellipse cx="27" cy="41" rx="3.4" ry="4" fill="#f4efe5" />
+      <circle cx="27" cy="42" r="1.6" fill="#1a1a1a" />
+      <ellipse cx="37" cy="41" rx="3.4" ry="4" fill="#f4efe5" />
+      <circle cx="37" cy="42" r="1.6" fill="#1a1a1a" />
+      <path d="M28 49 L36 49 L32 58 Z" fill="#b0522c" stroke="#43301f" strokeWidth="0.8" />
+      {/* bear ears + face */}
+      <path d="M20 90 Q 14 84 20 82 Z" fill="#b0522c" />
+      <path d="M44 90 Q 50 84 44 82 Z" fill="#b0522c" />
+      <rect x="20" y="88" width="24" height="30" rx="6" fill="#1a1a1a" />
+      <ellipse cx="27" cy="98" rx="3.6" ry="4" fill="#f4efe5" />
+      <circle cx="27" cy="99" r="1.7" fill="#1a1a1a" />
+      <ellipse cx="37" cy="98" rx="3.6" ry="4" fill="#f4efe5" />
+      <circle cx="37" cy="99" r="1.7" fill="#1a1a1a" />
+      <rect x="27" y="104" width="10" height="9" rx="3" fill="#2f6d6a" />
+      <circle cx="30" cy="108" r="1.2" fill="#1a1a1a" />
+      <circle cx="34" cy="108" r="1.2" fill="#1a1a1a" />
+      {/* orca base figure */}
+      <rect x="20" y="140" width="24" height="54" rx="7" fill="#1a1a1a" />
+      <ellipse cx="27" cy="152" rx="3.6" ry="4" fill="#f4efe5" />
+      <circle cx="27" cy="153" r="1.7" fill="#1a1a1a" />
+      <ellipse cx="37" cy="152" rx="3.6" ry="4" fill="#f4efe5" />
+      <circle cx="37" cy="153" r="1.7" fill="#1a1a1a" />
+      <path d="M24 162 Q 32 171 40 162" stroke="#b0522c" strokeWidth="3" fill="none" />
+      <rect x="28" y="173" width="8" height="15" rx="3" fill="#b0522c" />
+    </g>
+  );
+}
+
 export function CabinScene({ className = "" }: { className?: string }) {
   return (
     <svg
@@ -215,11 +322,11 @@ export function CabinScene({ className = "" }: { className?: string }) {
       {/* mid + foreground trees around and behind the cabin, varied heights */}
       <Fir x={300} baseY={150} h={40} w={18} stroke="#5e7d63" opacity={0.75} />
       <Fir x={340} baseY={144} h={56} w={22} stroke="#4f6d55" opacity={0.8} />
-      <Fir x={470} baseY={128} h={74} w={26} stroke="#4f6d55" opacity={0.8} />
+      <Fir x={470} baseY={128} h={74} w={26} stroke={GROVE_STROKE} fill={GROVE_FILL} trunk="#6b4a2f" opacity={0.85} />
       <Fir x={508} baseY={120} h={62} w={22} stroke="#5e7d63" opacity={0.7} />
-      <Fir x={628} baseY={122} h={80} w={28} stroke="#4f6d55" opacity={0.82} />
+      <Fir x={628} baseY={122} h={80} w={28} stroke={GROVE_STROKE} fill={GROVE_FILL} trunk="#6b4a2f" opacity={0.86} />
       <Fir x={672} baseY={130} h={58} w={22} stroke="#5e7d63" opacity={0.72} />
-      <Fir x={735} baseY={140} h={66} w={24} stroke="#4f6d55" opacity={0.78} />
+      <Fir x={735} baseY={140} h={66} w={24} stroke={GROVE_STROKE} fill={GROVE_FILL} trunk="#6b4a2f" opacity={0.84} />
       <Fir x={800} baseY={150} h={46} w={18} stroke="#5e7d63" opacity={0.7} />
       <Fir x={840} baseY={156} h={36} w={15} stroke="#746a5d" opacity={0.6} />
 
@@ -238,6 +345,27 @@ export function CabinScene({ className = "" }: { className?: string }) {
       {/* small gap-fillers on the bluff, off to the sides */}
       <Fir x={392} baseY={148} h={30} w={12} stroke="#5e7d63" trunk="#6b4a2f" opacity={0.68} lean={-3} />
       <Fir x={786} baseY={150} h={28} w={11} stroke="#4f6d55" trunk="#6b4a2f" opacity={0.68} lean={3} />
+
+      {/* denser grove ringing the cabin — ported from the Figma design pass.
+          Some firs are filled (green + carved-brown outline), the rest hollow,
+          for a full, layered stand. */}
+      {GROVE.map(([x, b, h, w, op, filled, lean], i) => (
+        <Fir
+          key={`grove-${i}`}
+          x={x}
+          baseY={b}
+          h={h}
+          w={w}
+          opacity={op}
+          lean={lean}
+          trunk="#6b4a2f"
+          fill={filled ? GROVE_FILL : "none"}
+          stroke={filled ? GROVE_STROKE : i % 2 ? "#4f6d55" : "#5e7d63"}
+        />
+      ))}
+
+      {/* stylized carved post beside the cabin (see Totem note above) */}
+      <Totem />
 
       {/* the cabin, with a window that warms to life on load */}
       <circle className="cabin-glow" cx="566" cy="102" r="12" fill="#e7a54a" />

@@ -15,6 +15,7 @@
 
 import { getSkyState, getWarmSkyState, getLunarPhase } from "@/lib/sky-state";
 import type { SkyState } from "@/lib/sky-state";
+import { FormlineSun } from "@/components/formline-sun";
 
 // ---------------------------------------------------------------------------
 // Sky palettes
@@ -71,34 +72,25 @@ function Sun({ state }: { state: SkyState }) {
     <div
       className="pointer-events-none absolute"
       style={{
-        top: isSunset ? "55%" : "14%",
-        right: isSunset ? "auto" : "18%",
-        left: isSunset ? "14%" : "auto",
-        width: isSunset ? 72 : 56,
-        height: isSunset ? 72 : 56,
+        top: isSunset ? "50%" : "11%",
+        right: isSunset ? "auto" : "15%",
+        left: isSunset ? "12%" : "auto",
+        width: isSunset ? 96 : 86,
+        height: isSunset ? 96 : 86,
       }}
     >
       {/* Outer glow */}
       <div
         className="absolute rounded-full"
         style={{
-          inset: -20,
+          inset: -16,
           background: isSunset
-            ? "radial-gradient(circle, rgba(240,140,40,0.35) 0%, transparent 70%)"
-            : "radial-gradient(circle, rgba(255,220,60,0.35) 0%, transparent 70%)",
+            ? "radial-gradient(circle, rgba(240,140,40,0.4) 0%, transparent 70%)"
+            : "radial-gradient(circle, rgba(255,210,60,0.4) 0%, transparent 70%)",
         }}
       />
-      {/* Sun disc */}
-      <div
-        className="h-full w-full rounded-full"
-        style={{
-          background: isSunset ? "#f08030" : "#ffd040",
-          opacity: isSunset ? 0.9 : 0.85,
-          boxShadow: isSunset
-            ? "0 0 24px 8px rgba(240,140,40,0.4)"
-            : "0 0 20px 6px rgba(255,220,60,0.35)",
-        }}
-      />
+      {/* Formline sun — original PNW-Coast-inspired homage (see FormlineSun) */}
+      <FormlineSun className="relative h-full w-full drop-shadow-sm" />
     </div>
   );
 }

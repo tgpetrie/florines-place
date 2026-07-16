@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { LandscapeBackground } from "@/components/landscape-bg";
 import { CabinScene } from "@/components/cabin-scene";
+import { FormlineCrest } from "@/components/formline-crest";
 import { MoonIcon } from "@/components/shore-art";
 import { GuideIcon } from "@/components/guide-icons";
 import { ForecastPreview } from "@/components/forecast-preview";
@@ -44,12 +45,16 @@ export default function HomePage() {
           <p className="label rise inline-block rounded-full bg-oystercard/80 px-3 py-1 !tracking-[0.14em] text-cedarwarm backdrop-blur-sm">
             Petrie Family Cabin
           </p>
-          <h1
-            className="rise-2 mt-3 text-4xl text-oystercard sm:text-5xl"
-            style={{ textShadow: "0 1px 16px rgba(8,15,34,0.55), 0 2px 4px rgba(8,15,34,0.3)" }}
-          >
-            Florine&rsquo;s Place
-          </h1>
+          <div className="rise-2 mt-3 flex items-center justify-center gap-3 sm:gap-4">
+            <FormlineCrest className="hidden h-7 w-8 shrink-0 sm:block" />
+            <h1
+              className="text-4xl text-oystercard sm:text-5xl"
+              style={{ textShadow: "0 1px 16px rgba(8,15,34,0.55), 0 2px 4px rgba(8,15,34,0.3)" }}
+            >
+              Florine&rsquo;s Place
+            </h1>
+            <FormlineCrest className="hidden h-7 w-8 shrink-0 sm:block" />
+          </div>
           <p
             className="rise-2 mt-2 text-sm font-semibold text-oystercard/90"
             style={{ textShadow: "0 1px 6px rgba(8,15,34,0.45)" }}
