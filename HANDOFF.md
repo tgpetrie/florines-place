@@ -33,21 +33,13 @@ intent is documented in each component's header comment; keep that framing.
 
 ## TODO (open items, in priority order)
 
-### 1. Trees look like they're floating (not attached to the ground)
-Cause: in the `GROVE` generator (`cabin-scene.tsx`), the **back row** sits at
-`base - 7 - rnd()*12` and the **mid row** at `base - 2 + rnd()*4` — the negative
-offsets lift trunks above the sand, so in this side-view scene they read as
-floating rather than "further back."
-Suggested fix:
-- Anchor every row's `baseY` to the dune line (`dune(x)`), with only small
-  positive jitter (0–3px), so trunk bases meet the ground.
-- The `dune(x)` helper is an approximation: `min(159, 118 + 0.00022*(x-560)^2)`.
-  The **actual** land crest is the path in `cabin-scene.tsx` (`fill="#d8c7ad"` /
-  the `#8a5a36` crest stroke): control points `250,160 → 560,110 → 870,160`, then
-  tapering to the low side shores. Trees at the far edges (x < 250, x > 870)
-  should sit near the shoreline (~y 155–160), not the crest curve.
-- Optional polish: add a faint ground shadow (a low-opacity ellipse) under each
-  trunk to seat them visually.
+### 1. ~~Trees floating above the ground~~ — FIXED
+Resolved: the `GROVE` generator now plants every trunk on a `groundY(x)` helper
+that evaluates the *same* piecewise-quadratic land-crest curve the scene draws
+(`250,160 → 560,110 → 870,160 → …`), with only 0–3px positive jitter. Depth now
+comes from size/opacity, not from lifting the base. Filled ratio also raised
+(front ~70%, mid ~55%) to match the screenshot's mostly-solid look.
+Optional future polish: faint ground-shadow ellipses under trunks.
 
 ### 2. Port the hand-edited staircase from Figma
 The staircase was significantly changed by hand in the Figma file; this branch

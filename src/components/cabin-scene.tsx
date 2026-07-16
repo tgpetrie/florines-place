@@ -92,45 +92,59 @@ type FirTuple = [number, number, number, number, number, boolean, number];
 const GROVE: FirTuple[] = (() => {
   let s = 20260716; // fixed seed → deterministic
   const rnd = () => ((s = (s * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff);
-  const dune = (x: number) => Math.min(159, 118 + 0.00022 * (x - 560) ** 2);
+  // Ground surface — the SAME piecewise-quadratic land-crest curve the scene
+  // draws below (see the #d8c7ad land path / #8a5a36 crest). Evaluating it means
+  // every trunk base sits ON the sand at its x, so nothing floats.
+  const seg = (x0: number, y0: number, x1: number, y1: number, x2: number, y2: number, x: number) => {
+    const t = Math.max(0, Math.min(1, (x - x0) / (x2 - x0)));
+    const mt = 1 - t;
+    return mt * mt * y0 + 2 * mt * t * y1 + t * t * y2;
+  };
+  const groundY = (x: number) =>
+    x <= 250 ? seg(0, 158, 130, 155, 250, 160, x)
+    : x <= 560 ? seg(250, 160, 400, 120, 560, 110, x)
+    : x <= 870 ? seg(560, 110, 720, 120, 870, 160, x)
+    : seg(870, 160, 1006, 156, 1200, 156, x);
   const trees: FirTuple[] = [];
   let x = 130;
   while (x <= 1070) {
-    const base = dune(x);
     const nearCabin = x > 530 && x < 602; // leave the cabin readable
-    // back row — depth: smaller, fainter, always hollow
+    // back row — smaller, fainter, hollow; planted on the ground (depth via
+    // size/opacity, NOT by lifting the base)
+    const bx1 = Math.round(x + rnd() * 8 - 4);
     const hb = 30 + rnd() * 26;
     trees.push([
-      Math.round(x + rnd() * 8 - 4),
-      Math.round(base - 7 - rnd() * 12),
+      bx1,
+      Math.round(groundY(bx1) + rnd() * 2),
       Math.round(hb),
       Math.round(hb * 0.4),
       +(0.5 + rnd() * 0.22).toFixed(2),
       false,
       Math.round(rnd() * 6 - 3),
     ]);
-    // mid row — fills the gaps, occasional fill
-    if (rnd() < 0.8) {
+    // mid row — fills the gaps, mostly filled
+    if (rnd() < 0.85) {
+      const bx2 = Math.round(x + rnd() * 10 - 5);
       const hm = 36 + rnd() * 28;
       trees.push([
-        Math.round(x + rnd() * 10 - 5),
-        Math.round(base - 2 + rnd() * 4),
+        bx2,
+        Math.round(groundY(bx2) + rnd() * 2),
         Math.round(hm),
         Math.round(hm * 0.4),
         +(0.66 + rnd() * 0.16).toFixed(2),
-        !nearCabin && rnd() < 0.4,
+        !nearCabin && rnd() < 0.55,
         Math.round(rnd() * 6 - 3),
       ]);
     }
-    // front row — tallest; some filled, but kept light/hollow right at the cabin
+    // front row — tallest; mostly filled, but kept light/hollow right at the cabin
     const h2 = (nearCabin ? 34 : 48) + rnd() * (nearCabin ? 18 : 40);
     trees.push([
-      Math.round(x),
-      Math.round(base + rnd() * 3),
+      x,
+      Math.round(groundY(x) + rnd() * 3),
       Math.round(h2),
       Math.round(h2 * 0.4),
       +((nearCabin ? 0.62 : 0.8) + rnd() * 0.16).toFixed(2),
-      !nearCabin && rnd() < 0.48,
+      !nearCabin && rnd() < 0.7,
       Math.round(rnd() * 6 - 3),
     ]);
     x += 13 + rnd() * 10;
