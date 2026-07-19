@@ -13,44 +13,20 @@ import {
 import { AdminEditBanner, HarvestCard, PlaceCard } from "@/components/field-guide";
 import {
   historicalPlaceholder,
-  tideEvents,
-  tideWindows,
-  weatherNow,
 } from "@/data/conditions";
 import { specialDates } from "@/data/special-dates";
 import { localPlaces } from "@/data/local-places";
 import { harvestResources, harvestWarning, officialLinks } from "@/data/harvest";
-import { APP_MODE } from "@/lib/app-mode";
-import { shortDate } from "@/lib/selectors";
+import { loadConditionsSnapshot } from "@/lib/conditions.server";
+import { shortDate, tideTimeToMinutes } from "@/lib/selectors";
 import type { SpecialDateKind } from "@/lib/types";
 
 export const metadata: Metadata = { title: "Tides, Weather & Nearby" };
-
-/** Mock "today" — matches the placeholder conditions snapshot. */
-const TODAY = "2026-07-09";
-/** Mock "now" is 9:00 AM, so "next high/low" read in a sensible order. */
-const NOW_MINUTES = 9 * 60;
-
-function timeToMinutes(time: string): number {
-  const [clock, meridiem] = time.split(" ");
-  const [h, m] = clock.split(":").map(Number);
-  return ((h % 12) + (meridiem === "PM" ? 12 : 0)) * 60 + m;
-}
-
-function isUpcoming(event: { date: string; time: string }): boolean {
-  if (event.date > TODAY) return true;
-  return event.date === TODAY && timeToMinutes(event.time) >= NOW_MINUTES;
-}
-
 const sections = [
-  ...(APP_MODE === "demo"
-    ? [
-        { id: "conditions", label: "Current Conditions" },
-        { id: "tides", label: "Tide Calendar" },
-        { id: "history", label: "Looking Back" },
-        { id: "dates", label: "Holidays & Dates" },
-      ]
-    : [{ id: "conditions", label: "Current Conditions" }]),
+  { id: "conditions", label: "Current Conditions" },
+  { id: "tides", label: "Tide Calendar" },
+  { id: "history", label: "Looking Back" },
+  { id: "dates", label: "Holidays & Dates" },
   { id: "essentials", label: "Nearby Essentials" },
   { id: "stops", label: "Local Stops & Experiences" },
   { id: "harvest", label: "Fishing & Shellfish" },
@@ -94,12 +70,20 @@ const kindTone: Record<SpecialDateKind, Parameters<typeof Badge>[0]["tone"]> = {
   "Seasonal reminder": "sand",
 };
 
-export default function LocalPage() {
-  const todaysTides = tideEvents.filter((t) => t.date === TODAY);
-  const nextHigh = tideEvents.find((t) => t.type === "high" && isUpcoming(t));
-  const nextLow = tideEvents.find((t) => t.type === "low" && isUpcoming(t));
-  const upcomingLows = tideEvents.filter((t) => t.date > TODAY && t.type === "low" && t.heightFt < 1);
-  const upcomingHighs = tideEvents.filter((t) => t.date > TODAY && t.type === "high").slice(0, 4);
+function isUpcoming(event: { date: string; time: string }, today: string, nowMinutes: number) {
+  if (event.date > today) return true;
+  return event.date === today && tideTimeToMinutes(event.time) >= nowMinutes;
+}
+
+export default async function LocalPage() {
+  const conditions = await loadConditionsSnapshot();
+  const { tideEvents, tideWindows, weatherNow, today, nowMinutes } = conditions;
+
+  const todaysTides = tideEvents.filter((t) => t.date === today);
+  const nextHigh = tideEvents.find((t) => t.type === "high" && isUpcoming(t, today, nowMinutes));
+  const nextLow = tideEvents.find((t) => t.type === "low" && isUpcoming(t, today, nowMinutes));
+  const upcomingLows = tideEvents.filter((t) => t.date > today && t.type === "low" && t.heightFt < 1);
+  const upcomingHighs = tideEvents.filter((t) => t.date > today && t.type === "high").slice(0, 4);
 
   const essentials = localPlaces.filter((p) => p.group === "essentials");
   const stops = localPlaces.filter((p) => p.group === "stops");
@@ -131,15 +115,17 @@ export default function LocalPage() {
 
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
         {/* 1. Current conditions */}
-        {APP_MODE === "demo" ? (
+        {conditions.connected && weatherNow ? (
           <>
             <SectionHeading
               id="conditions"
               icon={<MoonIcon className="h-8 w-8" />}
               title="Current Conditions"
-              lede="A snapshot of the canal right now. Mock data for this first version — live weather, NOAA tides, and sun/moon data connect here later."
+              lede={conditions.mode === "demo"
+                ? "A snapshot of the canal right now. Mock data for this first version — live weather, NOAA tides, and sun/moon data connect here later."
+                : "A live snapshot of the canal right now, with free weather, NOAA tides, and the current moon phase."}
             />
-            <div className="mt-2"><PlaceholderTag /></div>
+            {conditions.mode === "demo" && <div className="mt-2"><PlaceholderTag /></div>}
 
             <div className="mt-5 grid gap-6 lg:grid-cols-3">
           {/* Weather */}
@@ -208,20 +194,21 @@ export default function LocalPage() {
         )}
 
         {/* 2. Tide calendar */}
-        {APP_MODE === "demo" && (
-          <>
+        <>
         <SectionHeading
           id="tides"
           icon={<SandDollar className="h-7 w-7" />}
           title="Tide Calendar"
-          lede="Today's tides and the lows worth planning a morning around. Heights are placeholder numbers until NOAA data is connected."
+          lede={conditions.mode === "demo"
+            ? "Today's tides and the lows worth planning a morning around. Heights are placeholder numbers until NOAA data is connected."
+            : "Today's tides and the lows worth planning around, sourced from NOAA predictions."}
         />
-        <div className="mt-2"><PlaceholderTag /></div>
+        {conditions.mode === "demo" && <div className="mt-2"><PlaceholderTag /></div>}
 
         <div className="mt-5 grid gap-6 lg:grid-cols-2">
           {/* Today's tides */}
           <div className="card p-6">
-            <h3 className="text-xl text-heading-strong">Today — {shortDate(TODAY)}</h3>
+            <h3 className="text-xl text-heading-strong">Today — {shortDate(today)}</h3>
             <ul className="mt-4 space-y-2">
               {todaysTides.map((tide) => (
                 <li
@@ -342,8 +329,7 @@ export default function LocalPage() {
             </ul>
           </div>
         </div>
-          </>
-        )}
+        </>
 
         {/* 5. Nearby essentials */}
         <SectionHeading

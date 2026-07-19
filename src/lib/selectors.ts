@@ -83,7 +83,7 @@ export function nextTide(
   });
 }
 
-function tideTimeToMinutes(time: string): number {
+export function tideTimeToMinutes(time: string): number {
   const [clock, meridiem] = time.split(" ");
   const [h, m] = clock.split(":").map(Number);
   return ((h % 12) + (meridiem === "PM" ? 12 : 0)) * 60 + m;

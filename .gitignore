@@ -33,3 +33,9 @@ yarn-error.log*
 # Supabase local runtime files
 /supabase/.temp/
 /supabase/.branches/
+
+# Private operator notes (admin email lists, etc.) — never in git
+/ops/
+
+# Editor local-history snapshots (can contain copies of .env.local)
+.history/

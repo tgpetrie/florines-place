@@ -3,10 +3,8 @@
 /**
  * Family Dashboard — the family/admin control center.
  *
- * All actions are placeholders (they don't mutate anything yet).
- * BACKEND NOTE: each action button becomes a Supabase mutation —
- * update stay_requests.status, update cleaning fee, insert calendar blocks.
- * Role gating here becomes real row-level security once Supabase Auth lands.
+ * Stay request decisions now use live Supabase mutations in live mode.
+ * Remaining quick actions are still placeholders until their backend routes exist.
  */
 
 import Link from "next/link";
@@ -21,7 +19,7 @@ import { ideas } from "@/data/ideas";
 import { guestbookEntries } from "@/data/guestbook";
 import { dateRange, shortDate } from "@/lib/selectors";
 import { APP_MODE } from "@/lib/app-mode";
-import { loadDemoStayRequests, loadReservations } from "@/lib/reservations-client";
+import { loadDemoStayRequests, loadReservations, updateStayRequest } from "@/lib/reservations-client";
 import type { CalendarEvent, StayRequest } from "@/lib/types";
 
 function mockAction(label: string) {
@@ -48,16 +46,52 @@ export default function DashboardPage() {
   const isAdmin = role === "admin";
   const [reservationRequests, setReservationRequests] = useState<StayRequest[]>([]);
   const [reservationEvents, setReservationEvents] = useState<CalendarEvent[]>([]);
+  const [decisionBusyId, setDecisionBusyId] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   const refreshReservations = useCallback(async () => {
     if (APP_MODE === "demo") setReservationRequests(loadDemoStayRequests());
     try {
       const snapshot = await loadReservations();
       setReservationEvents(snapshot.events);
+      if (APP_MODE === "live") setReservationRequests(snapshot.requests);
     } catch {
       setReservationEvents([]);
+      if (APP_MODE === "live") setReservationRequests([]);
     }
   }, []);
+
+  const decideRequest = useCallback(async (
+    id: string,
+    status: "approved" | "declined",
+    cleaningFee?: "due" | "paid" | "waived",
+  ) => {
+    setActionError(null);
+    setDecisionBusyId(id);
+    try {
+      await updateStayRequest({ id, status, cleaningFee });
+      await refreshReservations();
+      window.dispatchEvent(new Event("florines:reservations-changed"));
+    } catch (error) {
+      setActionError(error instanceof Error ? error.message : "The stay request update failed.");
+    } finally {
+      setDecisionBusyId(null);
+    }
+  }, [refreshReservations]);
+
+  const markCleaningFeePaid = useCallback(async (id: string, status: "pending" | "approved" | "declined") => {
+    setActionError(null);
+    setDecisionBusyId(id);
+    try {
+      await updateStayRequest({ id, status, cleaningFee: "paid" });
+      await refreshReservations();
+      window.dispatchEvent(new Event("florines:reservations-changed"));
+    } catch (error) {
+      setActionError(error instanceof Error ? error.message : "The stay request update failed.");
+    } finally {
+      setDecisionBusyId(null);
+    }
+  }, [refreshReservations]);
 
   useEffect(() => {
     void refreshReservations();
@@ -158,6 +192,11 @@ export default function DashboardPage() {
             <Badge tone="sand">{pending.length} waiting</Badge>
           </div>
           <div className="mt-4 space-y-4">
+            {actionError && (
+              <p className="rounded-xl border border-rust/40 bg-rust/10 px-4 py-3 text-sm text-rust">
+                {actionError}
+              </p>
+            )}
             {pending.length === 0 && (
               <p className="rounded-xl bg-oyster/60 px-4 py-5 text-center text-sm text-driftwood">
                 No pending stay requests.
@@ -180,10 +219,18 @@ export default function DashboardPage() {
                 </p>
                 <p className="mt-1 text-sm italic text-ink-soft">&ldquo;{req.note}&rdquo;</p>
                 <div className="mt-4 flex flex-wrap gap-2">
-                  <button className={actionBtn} onClick={() => mockAction("Approve")}>
+                  <button
+                    className={actionBtn}
+                    disabled={decisionBusyId === req.id}
+                    onClick={() => void decideRequest(req.id, "approved")}
+                  >
                     Approve
                   </button>
-                  <button className={actionBtn} onClick={() => mockAction("Decline")}>
+                  <button
+                    className={actionBtn}
+                    disabled={decisionBusyId === req.id}
+                    onClick={() => void decideRequest(req.id, "declined")}
+                  >
                     Decline
                   </button>
                   <button className={actionBtn} onClick={() => mockAction("Ask a question")}>
@@ -191,10 +238,18 @@ export default function DashboardPage() {
                   </button>
                   {isAdmin && (
                     <>
-                      <button className={adminBtn} onClick={() => mockAction("Approve & waive cleaning fee")}>
+                      <button
+                        className={adminBtn}
+                        disabled={decisionBusyId === req.id}
+                        onClick={() => void decideRequest(req.id, "approved", "waived")}
+                      >
                         Approve &amp; waive fee
                       </button>
-                      <button className={adminBtn} onClick={() => mockAction("Mark cleaning fee paid")}>
+                      <button
+                        className={adminBtn}
+                        disabled={decisionBusyId === req.id}
+                        onClick={() => void markCleaningFeePaid(req.id, req.status)}
+                      >
                         Mark fee paid
                       </button>
                       <button className={adminBtn} onClick={() => mockAction("Block dates")}>

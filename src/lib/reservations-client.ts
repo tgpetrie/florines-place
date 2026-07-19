@@ -5,7 +5,15 @@ import type { CalendarEvent, StayRequest, StayRequestInput } from "@/lib/types";
 
 export interface ReservationSnapshot {
   events: CalendarEvent[];
+  requests: StayRequest[];
   mode: "live";
+}
+
+interface ReservationResponse {
+  events?: CalendarEvent[];
+  requests?: StayRequest[];
+  configured?: boolean;
+  error?: string;
 }
 
 export function loadDemoStayRequests(): StayRequest[] {
@@ -14,10 +22,10 @@ export function loadDemoStayRequests(): StayRequest[] {
 
 export async function loadReservations(): Promise<ReservationSnapshot> {
   const response = await fetch("/api/reservations", { cache: "no-store" });
-  const data = (await response.json()) as { events?: CalendarEvent[]; configured?: boolean; error?: string };
+  const data = (await response.json()) as ReservationResponse;
   if (!response.ok) throw new Error(data.error ?? "Live reservations could not be loaded.");
   if (data.configured === false) throw new Error(data.error ?? "The live reservation database is not connected yet.");
-  return { events: data.events ?? [], mode: "live" };
+  return { events: data.events ?? [], requests: data.requests ?? [], mode: "live" };
 }
 
 export async function submitStayRequest(input: StayRequestInput) {
@@ -37,4 +45,19 @@ export async function submitStayRequest(input: StayRequestInput) {
 
 export function resetDemoReservations() {
   // Live builds have no demo store to reset.
+}
+
+export async function updateStayRequest(input: {
+  id: string;
+  status: "pending" | "approved" | "declined";
+  cleaningFee?: "due" | "paid" | "waived";
+}) {
+  const response = await fetch("/api/reservations", {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+  });
+
+  const data = (await response.json()) as { error?: string };
+  if (!response.ok) throw new Error(data.error ?? "The stay request could not be updated.");
 }

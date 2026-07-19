@@ -1,84 +1,146 @@
-# Handoff — Florine's Place hero scene
+# Handoff - Florine's Place (Supabase Live + Admin Workflow)
 
-This handoff is written to be usable from Codex, local Claude, or Claude Cloud.
+This handoff is for Claude (or any follow-on agent) to continue from the current production state.
 
-## Start here
+## Current objective from owner
 
-- Actual app repo: `/Users/cdmxx/Florines Place`
-- Do not work from `/Users/cdmxx/Documents/TomsTech` for this task. That is a different project and was initially a source of confusion.
-- Current branch: `hero-native-motifs`
-- Upstream: `origin/hero-native-motifs`
+- Make selected family members admins.
+- Only admins should approve or decline stay requests.
+- Everyone else should remain guests.
 
-## What changed on July 16, 2026
+## Repo + runtime status
 
-- Warmed the hero shoreline and bluff in [src/components/cabin-scene.tsx](/Users/cdmxx/Florines Place/src/components/cabin-scene.tsx) so the gray, muddy strip now reads as ivory / warm beige.
-- Reduced the harsh pebble / driftwood clutter and softened shoreline texture so it feels calmer.
-- Increased tree diversity in the same file:
-  - wider size range
-  - wider lean range
-  - depth-based color variation instead of one repeated green
-- Added more canopy headroom by changing the scene viewBox and hero sizing in [src/app/page.tsx](/Users/cdmxx/Florines Place/src/app/page.tsx), which prevents the treetops from feeling chopped off.
-- Kept the existing formline sky work in place:
-  - [src/components/landscape-bg.tsx](/Users/cdmxx/Florines Place/src/components/landscape-bg.tsx)
-  - [src/components/formline-moon.tsx](/Users/cdmxx/Florines Place/src/components/formline-moon.tsx)
+- Repo: /Users/cdmxx/Florines Place
+- App stack: Next.js App Router + Supabase + Cloudflare Workers (OpenNext)
+- Supabase project linked and migrations applied remotely.
+- Live worker has Supabase secrets configured.
+- Live reservation API is connected (`configured: true`).
+- Free live conditions stack is implemented (Open-Meteo + NOAA + moon phase logic).
 
-## Files currently changed on this branch
+## What was just implemented
 
-- [src/app/page.tsx](/Users/cdmxx/Florines Place/src/app/page.tsx)
-- [src/components/cabin-scene.tsx](/Users/cdmxx/Florines Place/src/components/cabin-scene.tsx)
-- [src/components/landscape-bg.tsx](/Users/cdmxx/Florines Place/src/components/landscape-bg.tsx)
-- [src/components/formline-moon.tsx](/Users/cdmxx/Florines Place/src/components/formline-moon.tsx)
+### 0) Supabase auth roles now come from `public.profiles`
 
-## Current visual state
+Updated migration:
+- supabase/migrations/20260719072526_family_auth_profiles.sql
 
-- Homepage hero now renders with a lighter shore and more varied forest depth.
-- The live homepage is using the warm sky path by default.
-- The formline moon exists in code, but the homepage only shows it when the sky state reaches `night` or `dusk`, or when the hero is forced to a night state for testing.
+Behavior:
+- Every Supabase auth user now gets a matching `public.profiles` row.
+- New and backfilled users default to `role = 'guest'`.
+- Authorization no longer depends on auth metadata for roles.
+- The app reads `profiles.role` only, with valid roles:
+  - `guest`
+  - `family`
+  - `admin`
 
-## Verification already run
+Operational meaning:
+- `admin` can view and manage stay requests.
+- `family` can sign in as family but cannot approve or decline requests.
+- `guest` has no admin access.
 
-- Typecheck passed:
+SQL pattern for promoting specific family emails to admin:
 
-```bash
-./node_modules/.bin/tsc --noEmit --pretty false
+```sql
+update public.profiles
+set role = 'guest', updated_at = now();
+
+update public.profiles as profiles
+set role = 'admin', updated_at = now()
+from auth.users as users
+where users.id = profiles.id
+  and lower(users.email) in (
+    'family-member-one@example.com',
+    'family-member-two@example.com'
+  );
+
+select users.email, profiles.role
+from public.profiles as profiles
+join auth.users as users on users.id = profiles.id
+order by users.email;
 ```
 
-- Visual verification was done against the running app at `http://localhost:3000`.
+Important:
+- Replace the example email list with the actual approved family emails.
+- Anyone not explicitly promoted stays `guest`.
+- If a family member signs up before being promoted, they will still be created safely as `guest` until the role is changed.
 
-## Recommended next tasks
+### 1) Admin-only stay request decisions (live)
 
-1. Fine-tune the forest composition against owner taste.
-2. Compare the current staircase shape with the Figma source and adjust if needed.
-3. Test hero appearance at mobile, tablet, and desktop widths after any further scene edits.
-4. If desired, add an explicit debug mode to force `day`, `sunset`, or `night` sky for faster visual review.
+Updated API route:
+- src/app/api/reservations/route.ts
 
-## Run locally
+Changes:
+- Added viewer role lookup via Supabase session + profiles role.
+- GET now returns:
+  - calendar events for all callers
+  - stay requests only when viewer role is admin
+- Added PATCH endpoint for admin updates to stay requests:
+  - supports status updates: pending, approved, declined
+  - supports cleaning fee updates: due, paid, waived
+  - rejects non-admins with 403
 
-```bash
-cd "/Users/cdmxx/Florines Place"
-npm run dev
-```
+### 2) Client API wiring for request updates
 
-Then open [http://localhost:3000](http://localhost:3000).
+Updated client helper:
+- src/lib/reservations-client.ts
 
-## Useful checks
+Changes:
+- Reservation snapshot now includes requests array.
+- Added updateStayRequest(...) helper using PATCH /api/reservations.
 
-```bash
+### 3) Dashboard approve/decline now live
+
+Updated dashboard page:
+- src/app/dashboard/page.tsx
+
+Changes:
+- Replaced placeholder approve/decline actions with real live API mutations.
+- Added approve + waive fee action.
+- Added mark fee paid action with refresh/error handling.
+- Added in-flight action state and inline action error display.
+- Live mode now loads stay requests from API snapshot.
+
+## Validation run
+
+- npm run typecheck -> pass
+
+## Remaining gaps
+
+- Some dashboard buttons are still placeholders (ask a question, block dates, quick actions).
+- Final admin email list should be kept in a private operator note, not in git.
+- Keys/tokens should be rotated if they were exposed in chat/screenshot history.
+
+## Next steps Claude should do
+
+1. Apply role policy in Supabase
+- Set all profiles.role to guest.
+- Promote only approved family emails to admin.
+- Verify with a users/profile join query.
+
+Concrete check:
+- Confirm every account exists in `public.profiles`.
+- Confirm only the approved family emails resolve to `admin`.
+- Confirm all other accounts remain `guest` unless there is a deliberate reason to use `family`.
+
+2. End-to-end verify admin flow
+- Login as admin and confirm:
+  - pending requests are visible
+  - approve/decline updates persist
+  - cleaning fee updates persist
+- Login as non-admin and confirm PATCH returns 403.
+
+3. Optional hardening
+- Restrict GET event visibility if desired.
+- Add audit logging for admin decisions.
+- Add server-side validation for state transitions if policy requires (for example, prevent direct pending<-declined without explicit reopen flow).
+
+## Quick commands
+
 cd "/Users/cdmxx/Florines Place"
 git status --short
-./node_modules/.bin/tsc --noEmit --pretty false
-```
+npm run typecheck
+npm run build:live
 
-## Notes for any agent
+## Suggested prompt for Claude
 
-- Preserve SSR-safe determinism in the generated grove. Do not introduce `Math.random()` inside render.
-- Preserve the cultural framing comments around the formline / totem motifs. They are original stylized homages, not reproductions.
-- If you change the hero crop again, verify with screenshots, not just by reading the SVG math.
-
-## Suggested continuation prompt
-
-Use this if you want another agent to pick up immediately:
-
-```text
-Continue work in /Users/cdmxx/Florines Place on branch hero-native-motifs. Read HANDOFF.md first, then inspect the homepage hero scene. Verify the current visual state at localhost:3000 before making changes. Focus on refining the Florine's Place hero art, not the unrelated TomsTech repo.
-```
+Continue in /Users/cdmxx/Florines Place. Read HANDOFF.md first. Finalize family authorization by setting only selected emails to admin in Supabase profiles and leaving all others guest. Then verify the live dashboard approve/decline + cleaning-fee workflow end to end with role-based access control.

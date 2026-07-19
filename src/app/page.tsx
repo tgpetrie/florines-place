@@ -9,11 +9,8 @@ import { ForecastPreview } from "@/components/forecast-preview";
 import { StayStatusCard } from "@/components/stay-status-card";
 import { PlaceSignalsHome } from "@/components/place-signals";
 import { PorchNotesPreview } from "@/components/porch-notes";
-import { weatherNow, tideEvents, tenDayOutlook, MOCK_TODAY } from "@/data/conditions";
+import { loadConditionsSnapshot } from "@/lib/conditions.server";
 import { nextTide } from "@/lib/selectors";
-import { APP_MODE } from "@/lib/app-mode";
-
-const NOW_MINUTES = 9 * 60;
 
 const quickActions = [
   { href: "/request",   label: "Request a Stay",   icon: "lantern"  as const },
@@ -22,9 +19,11 @@ const quickActions = [
   { href: "/supplies",  label: "Update Supplies",   icon: "supplies" as const },
 ];
 
-export default function HomePage() {
-  const nextLow  = nextTide(tideEvents, "low",  MOCK_TODAY, NOW_MINUTES);
-  const nextHigh = nextTide(tideEvents, "high", MOCK_TODAY, NOW_MINUTES);
+export default async function HomePage() {
+  const conditions = await loadConditionsSnapshot();
+  const nextLow  = nextTide(conditions.tideEvents, "low",  conditions.today, conditions.nowMinutes);
+  const nextHigh = nextTide(conditions.tideEvents, "high", conditions.today, conditions.nowMinutes);
+  const weatherNow = conditions.weatherNow;
 
   return (
     <>
@@ -84,10 +83,12 @@ export default function HomePage() {
       </section>
 
       {/* ── 3. Today at Florine's Place ───────────────────────────────────── */}
-      {APP_MODE === "demo" ? <section className="mx-auto max-w-5xl px-4 pt-12 sm:px-6">
+      {conditions.connected && weatherNow ? <section className="mx-auto max-w-5xl px-4 pt-12 sm:px-6">
         <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
           <h2 className="text-2xl text-heading">Today at Florine&rsquo;s Place</h2>
-          <p className="metadata">Mock data · live weather &amp; tides planned</p>
+          <p className="metadata">
+            {conditions.mode === "demo" ? "Mock data · live weather & tides planned" : "Live weather · NOAA tides"}
+          </p>
         </div>
 
         <div className="card mt-4 !bg-oystercard/95 p-5 sm:p-6" style={{ backdropFilter: "blur(6px)" }}>
@@ -178,10 +179,10 @@ export default function HomePage() {
       <PorchNotesPreview />
 
       {/* ── 6. Next few days ─────────────────────────────────────────────── */}
-      {APP_MODE === "demo" && <section className="mx-auto max-w-5xl px-4 pt-12 sm:px-6">
+      {conditions.connected && <section className="mx-auto max-w-5xl px-4 pt-12 sm:px-6">
         <h2 className="text-xl text-heading">The next few days</h2>
         <div className="mt-3 rounded-2xl border border-sandshadow/40 bg-oyster/40 p-4 sm:p-5">
-          <ForecastPreview days={tenDayOutlook} />
+          <ForecastPreview days={conditions.tenDayOutlook} />
         </div>
       </section>}
 

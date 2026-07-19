@@ -1,30 +1,23 @@
 # Codex handoff
 
-Start with [HANDOFF.md](/Users/cdmxx/Florines Place/HANDOFF.md). It is the canonical cross-tool handoff for this branch.
+Canonical handoff is in HANDOFF.md.
 
-## Quick context
+## Session outcome
 
-- Repo: `/Users/cdmxx/Florines Place`
-- Branch: `hero-native-motifs`
-- App URL when running: [http://localhost:3000](http://localhost:3000)
-- Do not use `/Users/cdmxx/Documents/TomsTech` for this task.
+- Added Supabase profile-based role handoff details.
+- Documented that all users default to `guest` and selected family emails must be promoted in `public.profiles`.
+- Implemented admin-only stay request mutation path in live mode.
+- Wired dashboard approve/decline actions to real API updates.
+- Added live request loading for admins.
+- Typecheck passed.
 
-## First commands
+## Primary files changed
 
-```bash
-cd "/Users/cdmxx/Florines Place"
-git status --short
-./node_modules/.bin/tsc --noEmit --pretty false
-npm run dev
-```
+- src/app/api/reservations/route.ts
+- src/lib/reservations-client.ts
+- src/app/dashboard/page.tsx
+- HANDOFF.md
 
-## Primary files
+## Next priority
 
-- [src/app/page.tsx](/Users/cdmxx/Florines Place/src/app/page.tsx)
-- [src/components/cabin-scene.tsx](/Users/cdmxx/Florines Place/src/components/cabin-scene.tsx)
-- [src/components/landscape-bg.tsx](/Users/cdmxx/Florines Place/src/components/landscape-bg.tsx)
-- [src/components/formline-moon.tsx](/Users/cdmxx/Florines Place/src/components/formline-moon.tsx)
-
-## Codex-specific reminder
-
-- Validate visual changes with screenshots or browser checks before claiming the hero is fixed.
+Apply final role assignments in Supabase profiles so only selected family members are admins, then validate workflow end to end.

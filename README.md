@@ -84,6 +84,26 @@ impossible even when two requests arrive at nearly the same time. Browser roles
 have no direct table access; the Next.js route validates requests and returns
 only public calendar fields.
 
+### Live weather, tides, and moon phase
+
+The live build now uses a free conditions stack instead of sample data:
+
+- **Weather** — Open-Meteo
+- **Tides** — NOAA CO-OPS predictions
+- **Moon phase** — local app calculation
+
+Optional live conditions env vars:
+
+```bash
+CABIN_LATITUDE=47.93
+CABIN_LONGITUDE=-122.59
+NOAA_TIDE_STATION_ID=9444090
+```
+
+If those are omitted, the app falls back to the current Hansville / Hood Canal
+defaults in code. Set them explicitly once you have the exact cabin coordinates
+and preferred NOAA station.
+
 ### Private directions configuration
 
 Copy `.env.example` to `.env.local` and fill in the private cabin address,
@@ -114,8 +134,9 @@ under a **Guide** dropdown to keep the navigation calm.
 
 ### Tides, Weather & Nearby
 
-The local field guide combines placeholder conditions data with a
-family-curated directory:
+Demo mode uses labeled sample conditions data. Live mode now pulls real weather
+and tide data while keeping the same page structure and moon-phase display.
+The local field guide also includes a family-curated directory:
 
 - **Current conditions & tide calendar** — mock data, clearly labeled; wired
   later to a weather API, NOAA tides, and a sun/moon source
