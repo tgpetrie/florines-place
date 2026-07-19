@@ -341,16 +341,26 @@ export function CabinScene({ className = "" }: { className?: string }) {
         <path d="M560 97 L572 97 M566 97 L566 110" strokeWidth="1.3" />
       </g>
 
-      {/* Switchback staircase down to the shoreline — the version that read best. */}
-      <path
-        d="M610 108 C606 117 611 125 619 130 C614 138 620 146 629 150 C625 157 637 163 645 169"
+      {/* Switchback staircase down to the shoreline, drawn as two parallel dashed
+          rails (like the Figma trail). Same path, offset left/right. */}
+      <g
         stroke="#46545c"
-        strokeWidth="2.4"
-        strokeDasharray="4.5 3.5"
+        strokeWidth="1.7"
+        strokeDasharray="4 3"
         strokeLinejoin="round"
         strokeLinecap="round"
+        fill="none"
         opacity="0.86"
-      />
+      >
+        <path
+          transform="translate(-2.8 0)"
+          d="M610 108 C606 117 611 125 619 130 C614 138 620 146 629 150 C625 157 637 163 645 169"
+        />
+        <path
+          transform="translate(2.8 0)"
+          d="M610 108 C606 117 611 125 619 130 C614 138 620 146 629 150 C625 157 637 163 645 169"
+        />
+      </g>
 
       {/* a single eagle gliding across, once */}
       <g className="eagle-glide">
