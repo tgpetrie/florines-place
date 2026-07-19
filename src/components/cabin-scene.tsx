@@ -18,6 +18,8 @@
  * is a one-off illustration, not themed UI.
  */
 
+import { heroFirsByDepth } from "@/data/hero-firs";
+
 /** A single Pacific-Northwest fir / cedar silhouette. */
 function Fir({
   x,
@@ -76,57 +78,6 @@ function Fir({
   );
 }
 
-/** Exact quadratic evaluation for the visible bluff-crest path below. Keeping
- * this in one shared helper prevents hand-placed and generated trees from
- * drifting away from the sand surface. */
-function quadraticY(
-  x0: number,
-  y0: number,
-  cx: number,
-  cy: number,
-  x1: number,
-  y1: number,
-  x: number,
-) {
-  const t = Math.max(0, Math.min(1, (x - x0) / (x1 - x0)));
-  const mt = 1 - t;
-  return mt * mt * y0 + 2 * mt * t * cy + t * t * y1;
-}
-
-function landGroundY(x: number) {
-  if (x <= 250) return quadraticY(0, 158, 130, 155, 250, 160, x);
-  if (x <= 560) return quadraticY(250, 160, 400, 120, 560, 110, x);
-  if (x <= 870) return quadraticY(560, 110, 720, 120, 870, 160, x);
-  return quadraticY(870, 160, 1006, 156, 1200, 156, x);
-}
-
-type GroveDepth = "back" | "mid" | "front";
-
-type GroveTone = { fill: string; stroke: string; hollow: string; trunk: string; strokeWidth: number };
-
-const GROVE_PALETTE: Record<GroveDepth, GroveTone[]> = {
-  back: [
-    { fill: "#b8c4b4", stroke: "#92a18f", hollow: "#98a89a", trunk: "#8d7c67", strokeWidth: 0.95 },
-    { fill: "#a7b8a8", stroke: "#859786", hollow: "#8ba08e", trunk: "#857460", strokeWidth: 1.0 },
-    { fill: "#9db29f", stroke: "#7d9282", hollow: "#839889", trunk: "#806f5b", strokeWidth: 1.02 },
-  ],
-  mid: [
-    { fill: "#779275", stroke: "#60775f", hollow: "#698167", trunk: "#7b5b40", strokeWidth: 1.15 },
-    { fill: "#688667", stroke: "#557059", hollow: "#5f7a63", trunk: "#74533a", strokeWidth: 1.22 },
-    { fill: "#829a77", stroke: "#667b5f", hollow: "#6d8567", trunk: "#7f5d43", strokeWidth: 1.18 },
-  ],
-  front: [
-    { fill: "#55784f", stroke: "#6a4a31", hollow: "#5d8058", trunk: "#6a4a31", strokeWidth: 1.28 },
-    { fill: "#456c47", stroke: "#5f3a24", hollow: "#4f7850", trunk: "#5f3a24", strokeWidth: 1.36 },
-    { fill: "#62814f", stroke: "#755035", hollow: "#6a8756", trunk: "#755035", strokeWidth: 1.31 },
-  ],
-};
-
-function groveToneFor(depth: GroveDepth, x: number, index: number) {
-  const variants = GROVE_PALETTE[depth];
-  return variants[(index + Math.round(x / 23)) % variants.length];
-}
-
 const WATER_BASE = "#748d96";
 const WATER_LINE = "#efe1c9";
 const WATER_DRIFT = "#34535f";
@@ -141,126 +92,6 @@ const SHORE_ROCK = "#ab9271";
 const SHORE_DRIFTWOOD = "#8c6948";
 const SHORE_SEAWEED = "#5d795e";
 const TREE_SHADOW = "#8d7658";
-
-/** A full but legible grove matching the Figma composition: more individual
- * trees than the original scene, with depth carried primarily by graduated
- * green shades instead of heavy overlap. Generated once from a fixed seed, so
- * server render and hydration remain byte-identical. Tuple:
- * [x, baseY, height, width, opacity, depth, filled, lean]. */
-type FirTuple = [number, number, number, number, number, GroveDepth, boolean, number];
-const GROVE: FirTuple[] = (() => {
-  let s = 20260716; // fixed seed → deterministic
-  const rnd = () => ((s = (s * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff);
-  const trees: FirTuple[] = [];
-
-  const addRow = ({
-    depth,
-    start,
-    end,
-    spacing,
-    spacingJitter,
-    heightMin,
-    heightMax,
-    opacityMin,
-    opacityMax,
-    fillChance,
-    apexFloor,
-  }: {
-    depth: GroveDepth;
-    start: number;
-    end: number;
-    spacing: number;
-    spacingJitter: number;
-    heightMin: number;
-    heightMax: number;
-    opacityMin: number;
-    opacityMax: number;
-    fillChance: number;
-    apexFloor: number;
-  }) => {
-    let cursor = start + rnd() * spacing;
-    while (cursor <= end) {
-      const x = Math.round(cursor + rnd() * 8 - 4);
-      const nearCabin =
-        x > (depth === "back" ? 550 : depth === "mid" ? 545 : 535) &&
-        x < (depth === "back" ? 590 : depth === "mid" ? 600 : 610);
-      const nearTotem = depth === "front" && x > 486 && x < 510;
-      const nearStairs = depth === "front" && x > 620 && x < 660;
-
-      // Preserve a clean silhouette around the cabin, carved post, and edited
-      // staircase. The distant row may ghost behind these landmarks.
-      const edgeTaper =
-        x > 900 ? ((x - 900) / 250) * (depth === "front" ? 0.48 : 0.32) : x < 165 ? 0.22 : 0;
-      const skip =
-        nearTotem ||
-        (nearStairs && rnd() < 0.62) ||
-        (nearCabin && (depth === "front" || rnd() < (depth === "mid" ? 0.82 : 0.45))) ||
-        rnd() < edgeTaper;
-
-      if (!skip) {
-        const baseY = landGroundY(x);
-        // Bias toward taller silhouettes while widening the silhouette range so
-        // the grove does not read as a repeated stamp line.
-        const naturalHeight = heightMin + Math.sqrt(rnd()) * (heightMax - heightMin);
-        const h = Math.round(Math.min(naturalHeight, Math.max(28, baseY - apexFloor)));
-        trees.push([
-          x,
-          +baseY.toFixed(1),
-          h,
-          Math.round(h * (0.34 + rnd() * 0.22)),
-          +(opacityMin + rnd() * (opacityMax - opacityMin)).toFixed(2),
-          depth,
-          rnd() < fillChance,
-          Math.round(rnd() * 10 - 5),
-        ]);
-      }
-
-      cursor += spacing + rnd() * spacingJitter;
-    }
-  };
-
-  addRow({
-    depth: "back",
-    start: 125,
-    end: 1080,
-    spacing: 11,
-    spacingJitter: 9,
-    heightMin: 26,
-    heightMax: 72,
-    opacityMin: 0.38,
-    opacityMax: 0.62,
-    fillChance: 0.72,
-    apexFloor: 30,
-  });
-  addRow({
-    depth: "mid",
-    start: 135,
-    end: 1070,
-    spacing: 14,
-    spacingJitter: 10,
-    heightMin: 36,
-    heightMax: 90,
-    opacityMin: 0.56,
-    opacityMax: 0.82,
-    fillChance: 0.82,
-    apexFloor: 28,
-  });
-  addRow({
-    depth: "front",
-    start: 140,
-    end: 1060,
-    spacing: 19,
-    spacingJitter: 14,
-    heightMin: 46,
-    heightMax: 106,
-    opacityMin: 0.82,
-    opacityMax: 0.97,
-    fillChance: 0.92,
-    apexFloor: 24,
-  });
-
-  return trees;
-})();
 
 /**
  * Totem — an original, stylized carved post in the Pacific Northwest Coast
@@ -428,41 +259,29 @@ export function CabinScene({ className = "" }: { className?: string }) {
         </g>
       </g>
 
-      {/* Small contact shadows seat the nearest trunks on the sand. Their y
-          values come from the same land curve as every tree base. */}
+      {/* Contact shadows seat the more prominent trunks on the sand. */}
       <g fill={TREE_SHADOW}>
-        {GROVE.filter(([, , , , , depth]) => depth !== "back").map(([x, b, , w, , depth], i) => (
-          <ellipse
-            key={`tree-shadow-${i}`}
-            cx={x}
-            cy={b + 2.2}
-            rx={Math.max(3, w * 0.36)}
-            ry={depth === "front" ? 1.6 : 1.1}
-            opacity={depth === "front" ? 0.11 : 0.07}
-          />
-        ))}
+        {heroFirsByDepth
+          .filter(([, , , , op, fill]) => op >= 0.66 && fill !== "none")
+          .map(([x, b, , w], i) => (
+            <ellipse
+              key={`tree-shadow-${i}`}
+              cx={x}
+              cy={b + 2.2}
+              rx={Math.max(3, w * 0.36)}
+              ry={1.4}
+              opacity={0.1}
+            />
+          ))}
       </g>
 
-      {/* Shade-graded grove: hazy sage in back, medium cedar green through the
-          middle, and darker saturated firs in front. */}
-      {GROVE.map(([x, b, h, w, op, depth, filled, lean], i) => {
-        const palette = groveToneFor(depth, x, i);
-        return (
-          <Fir
-            key={`grove-${i}`}
-            x={x}
-            baseY={b}
-            h={h}
-            w={w}
-            opacity={op}
-            lean={lean}
-            trunk={palette.trunk}
-            fill={filled ? palette.fill : "none"}
-            stroke={filled ? palette.stroke : palette.hollow}
-            strokeWidth={palette.strokeWidth}
-          />
-        );
-      })}
+      {/* The family's exact hand-placed grove, ported verbatim from Figma
+          (see src/data/hero-firs.ts). Depth is carried by the varied opacities
+          and green shades exactly as placed; drawn faint-to-opaque so overlaps
+          layer back-to-front. */}
+      {heroFirsByDepth.map(([x, b, h, w, op, fill, stroke], i) => (
+        <Fir key={`fir-${i}`} x={x} baseY={b} h={h} w={w} opacity={op} fill={fill} stroke={stroke} />
+      ))}
 
       {/* stylized carved post beside the cabin (see Totem note above) */}
       <Totem />
