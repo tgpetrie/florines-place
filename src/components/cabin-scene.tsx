@@ -93,6 +93,35 @@ const SHORE_DRIFTWOOD = "#8c6948";
 const SHORE_SEAWEED = "#5d795e";
 const TREE_SHADOW = "#8d7658";
 
+/** Depth-graded fir tones applied over the exact Figma layout: hazy sage in the
+ *  distance, cedar green through the middle, deep saturated fir with a carved
+ *  brown outline up close. The tier is chosen from each tree's placed opacity
+ *  (fainter = further back), so your composition is untouched — only the shading
+ *  improves, and every fir is now filled for a solid depth read. */
+type FirTone = { fill: string; stroke: string; trunk: string; sw: number };
+const FIR_TONES: Record<"back" | "mid" | "front", FirTone[]> = {
+  back: [
+    { fill: "#adbfae", stroke: "#8ea592", trunk: "#8d7c67", sw: 1.0 },
+    { fill: "#9fb4a1", stroke: "#83987f", trunk: "#857460", sw: 1.02 },
+    { fill: "#b6c4b3", stroke: "#96a793", trunk: "#806f5b", sw: 0.98 },
+  ],
+  mid: [
+    { fill: "#6f8d6a", stroke: "#526f4f", trunk: "#7b5b40", sw: 1.16 },
+    { fill: "#5f8058", stroke: "#496a49", trunk: "#74533a", sw: 1.22 },
+    { fill: "#7c9770", stroke: "#5c7a55", trunk: "#7f5d43", sw: 1.12 },
+  ],
+  front: [
+    { fill: "#3f6a44", stroke: "#5f3a24", trunk: "#5f3a24", sw: 1.3 },
+    { fill: "#335b39", stroke: "#5a3720", trunk: "#5a3720", sw: 1.36 },
+    { fill: "#4a744c", stroke: "#6a4a31", trunk: "#6a4a31", sw: 1.28 },
+  ],
+};
+function firTone(opacity: number, x: number, index: number): FirTone {
+  const tier = opacity < 0.5 ? "back" : opacity < 0.78 ? "mid" : "front";
+  const variants = FIR_TONES[tier];
+  return variants[(index + Math.round(x / 23)) % variants.length];
+}
+
 /**
  * Totem — an original, stylized carved post in the Pacific Northwest Coast
  * idiom (stacked thunderbird / bear / orca, formline eyes and U-forms), stood
@@ -262,7 +291,7 @@ export function CabinScene({ className = "" }: { className?: string }) {
       {/* Contact shadows seat the more prominent trunks on the sand. */}
       <g fill={TREE_SHADOW}>
         {heroFirsByDepth
-          .filter(([, , , , op, fill]) => op >= 0.66 && fill !== "none")
+          .filter(([, , , , op]) => op >= 0.66)
           .map(([x, b, , w], i) => (
             <ellipse
               key={`tree-shadow-${i}`}
@@ -275,13 +304,29 @@ export function CabinScene({ className = "" }: { className?: string }) {
           ))}
       </g>
 
-      {/* The family's exact hand-placed grove, ported verbatim from Figma
-          (see src/data/hero-firs.ts). Depth is carried by the varied opacities
-          and green shades exactly as placed; drawn faint-to-opaque so overlaps
-          layer back-to-front. */}
-      {heroFirsByDepth.map(([x, b, h, w, op, fill, stroke], i) => (
-        <Fir key={`fir-${i}`} x={x} baseY={b} h={h} w={w} opacity={op} fill={fill} stroke={stroke} />
-      ))}
+      {/* The family's exact hand-placed grove (positions/opacity from Figma, see
+          src/data/hero-firs.ts) with a depth-graded green ramp applied: every fir
+          is filled, hazy sage in back through deep fir in front, drawn
+          faint-to-opaque so overlaps layer back-to-front. */}
+      {heroFirsByDepth.map(([x, b, h, w, op], i) => {
+        const tone = firTone(op, x, i);
+        // Lift the faintest firs a touch so the filled sage still reads as haze.
+        const o = op < 0.5 ? Math.min(0.62, op + 0.2) : op;
+        return (
+          <Fir
+            key={`fir-${i}`}
+            x={x}
+            baseY={b}
+            h={h}
+            w={w}
+            opacity={o}
+            fill={tone.fill}
+            stroke={tone.stroke}
+            trunk={tone.trunk}
+            strokeWidth={tone.sw}
+          />
+        );
+      })}
 
       {/* stylized carved post beside the cabin (see Totem note above) */}
       <Totem />
@@ -294,16 +339,17 @@ export function CabinScene({ className = "" }: { className?: string }) {
         <path d="M560 97 L572 97 M566 97 L566 110" strokeWidth="1.3" />
       </g>
 
-      {/* Hand-edited Figma staircase: a short, dark switchback tucked into the
-          trees, ending at the shoreline instead of running deep into the water. */}
+      {/* The staircase as drawn in Figma: two short switchback landings just off
+          the cabin, then a straight run down to the shoreline. Path reconstructed
+          from the captured Figma stair geometry (box ~x593–641, y118–163). */}
       <path
-        d="M610 108 C606 117 611 125 619 130 C614 138 620 146 629 150 C625 157 637 163 645 169"
-        stroke="#46545c"
-        strokeWidth="2.4"
-        strokeDasharray="4.5 3.5"
+        d="M593 118 L596 125 L607 127 L610 134 L620 136 L641 162"
+        stroke="#4a4744"
+        strokeWidth="2.3"
+        strokeDasharray="4 3"
         strokeLinejoin="round"
         strokeLinecap="round"
-        opacity="0.86"
+        opacity="0.9"
       />
 
       {/* a single eagle gliding across, once */}
