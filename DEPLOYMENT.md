@@ -8,6 +8,10 @@ The project ships as two independent Cloudflare Workers from the same branch:
 - `demo.petriecabin.com` — demo mode. It uses deterministic, browser-local
   sample reservations and the clearly labeled sample content.
 
+Cloudflare Builds watches the `hero-figma-forest` branch for both Workers.
+Each push runs the live and demo build commands independently and deploys a new
+version to its matching domain.
+
 ## Local commands
 
 ```sh
