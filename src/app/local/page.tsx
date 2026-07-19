@@ -359,6 +359,17 @@ export default async function LocalPage() {
           ))}
         </div>
 
+        {/* 6a. Delivery to the cabin */}
+        <div className="mt-6 rounded-2xl border border-sandshadow/40 bg-oyster/40 p-5 text-sm text-ink-soft">
+          <p className="font-bold text-heading-strong">Food delivered to the cabin?</p>
+          <p className="mt-1.5 leading-relaxed">
+            Uber Eats and DoorDash both technically operate around Kingston and Poulsbo, but coverage
+            way out in Hansville is inconsistent and depends on whether a driver is willing to make the
+            trip that day. Don&rsquo;t count on it — open the app and check with the cabin&rsquo;s actual
+            address before ordering, and have a backup plan (like calling ahead for pickup on the way in).
+          </p>
+        </div>
+
         {/* 6b. Community events */}
         {events.length > 0 && (
           <>
