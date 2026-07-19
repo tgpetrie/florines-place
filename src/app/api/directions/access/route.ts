@@ -47,7 +47,19 @@ export async function POST(request: NextRequest) {
   }
 
   return NextResponse.json(
-    { url: googleMapsDirectionsUrl(config.address) },
-    { headers: noStoreHeaders },
+    {
+      address: config.address,
+      wifiName: config.wifiName,
+      wifiPassword: config.wifiPassword,
+      doorCode: config.doorCode,
+      url: googleMapsDirectionsUrl(config.address),
+    },
+    {
+      headers: {
+        ...noStoreHeaders,
+        "Referrer-Policy": "no-referrer",
+        "X-Content-Type-Options": "nosniff",
+      },
+    },
   );
 }

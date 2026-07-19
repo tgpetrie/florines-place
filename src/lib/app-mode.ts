@@ -1,7 +1,7 @@
 export type AppMode = "demo" | "live";
 
 export const APP_MODE: AppMode =
-  process.env.NEXT_PUBLIC_APP_MODE === "live" ? "live" : "demo";
+  process.env.NEXT_PUBLIC_APP_MODE === "demo" ? "demo" : "live";
 
 export const IS_DEMO = APP_MODE === "demo";
 

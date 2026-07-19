@@ -127,6 +127,15 @@ function outlineFill(opacity: number): string {
   return opacity < 0.5 ? "#52745e" : opacity < 0.78 ? "#37613f" : "#2f5236";
 }
 
+/** Keep a deliberate opening around the house. Trees belong behind and beside
+ * the cabin, never half-painted through its walls or deck. */
+const CABIN_CLEARING_LEFT = 518;
+const CABIN_CLEARING_RIGHT = 620;
+
+function outsideCabinClearing(x: number): boolean {
+  return x < CABIN_CLEARING_LEFT || x > CABIN_CLEARING_RIGHT;
+}
+
 /**
  * Totem — an original, stylized carved post in the Pacific Northwest Coast
  * idiom (stacked thunderbird / bear / orca, formline eyes and U-forms), stood
@@ -168,6 +177,61 @@ function Totem() {
       <circle cx="37" cy="153" r="1.7" fill="#1a1a1a" />
       <path d="M24 162 Q 32 171 40 162" stroke="#b0522c" strokeWidth="3" fill="none" />
       <rect x="28" y="173" width="8" height="15" rx="3" fill="#b0522c" />
+    </g>
+  );
+}
+
+/** A simple front read of the real cabin: four tall main-floor windows above a
+ * wraparound deck, with the basement/foundation meeting the bluff below. */
+function Cabin() {
+  const windows = [540, 555, 570, 585];
+
+  return (
+    <g>
+      {/* A broad, soft contact shadow makes the foundation feel planted. */}
+      <ellipse cx="569" cy="132" rx="43" ry="3.6" fill="#8d7658" opacity="0.2" />
+
+      {/* Lower level: mostly quiet beneath the deck, but visibly reaches the ground. */}
+      <rect x="535" y="105" width="68" height="26" fill="#d8ccb8" stroke="#5f3a24" strokeWidth="1.5" />
+      <g fill="#6f8b8d" opacity="0.18">
+        {windows.map((x) => (
+          <rect key={`lower-window-${x}`} x={x} y="111" width="11" height="14" rx="0.8" />
+        ))}
+      </g>
+
+      {/* Main floor and low gable. */}
+      <path
+        d="M534 105 L534 80 L569 62 L604 80 L604 105 Z"
+        fill="#f4efe5"
+        stroke="#5f3a24"
+        strokeWidth="1.8"
+        strokeLinejoin="round"
+      />
+      <path d="M529 81 L569 59 L609 81" stroke="#5f3a24" strokeWidth="2.3" strokeLinejoin="round" />
+
+      {/* Four tall front windows — no centered door. */}
+      {windows.map((x, index) => (
+        <g key={`main-window-${x}`}>
+          <rect className="cabin-glow" x={x} y="83" width="11" height="19" rx="1" fill="#e7a54a" />
+          <rect x={x} y="83" width="11" height="19" rx="1" stroke="#5f3a24" strokeWidth="1.25" />
+          <path d={`M${x + 5.5} 83 V102`} stroke="#7d593b" strokeWidth="0.75" opacity="0.75" />
+          {index % 2 === 0 && (
+            <path d={`M${x} 92.5 H${x + 11}`} stroke="#7d593b" strokeWidth="0.65" opacity="0.55" />
+          )}
+        </g>
+      ))}
+
+      {/* Wraparound deck: a deep front edge, short side returns, and posts down
+          to the basement ground line. */}
+      <path d="M527 103 H611 L607 108 H531 Z" fill="#a27b58" stroke="#5f3a24" strokeWidth="1.4" />
+      <g stroke="#6f4c32" strokeWidth="1.25" strokeLinecap="round">
+        <path d="M528 97 V105 M610 97 V105" />
+        <path d="M528 98 H536 M602 98 H610" />
+        <path d="M531 107 V130 M607 107 V130" />
+      </g>
+
+      {/* Foundation line exactly on the local ground plane. */}
+      <path d="M523 131 Q 569 128 615 131" stroke="#9d805f" strokeWidth="1.6" opacity="0.65" />
     </g>
   );
 }
@@ -296,7 +360,7 @@ export function CabinScene({ className = "" }: { className?: string }) {
       {/* Contact shadows seat the more prominent trunks on the sand. */}
       <g fill={TREE_SHADOW}>
         {heroFirsByDepth
-          .filter(([, , , , op]) => op >= 0.66)
+          .filter(([x, , , , op]) => op >= 0.66 && outsideCabinClearing(x))
           .map(([x, b, , w], i) => (
             <ellipse
               key={`tree-shadow-${i}`}
@@ -314,7 +378,7 @@ export function CabinScene({ className = "" }: { className?: string }) {
           designed; the only change is that outline-only firs are now filled (with
           a green from your palette, by depth) so the layering reads solid. Drawn
           faint-to-opaque so overlaps stack back-to-front. */}
-      {heroFirsByDepth.map(([x, b, h, w, op, fill, stroke], i) => {
+      {heroFirsByDepth.filter(([x]) => outsideCabinClearing(x)).map(([x, b, h, w, op, fill, stroke], i) => {
         const base = fill === "none" ? outlineFill(op) : fill;
         return (
           <Fir
@@ -333,13 +397,10 @@ export function CabinScene({ className = "" }: { className?: string }) {
       {/* stylized carved post beside the cabin (see Totem note above) */}
       <Totem />
 
-      {/* the cabin, with a window that warms to life on load */}
-      <circle className="cabin-glow" cx="566" cy="102" r="12" fill="#e7a54a" />
-      <g stroke="#5f3a24" strokeWidth="2">
-        <path d="M544 114 L544 92 L566 76 L588 92 L588 114 Z" fill="#f4efe5" />
-        <rect x="560" y="97" width="12" height="13" fill="#e7a54a" />
-        <path d="M560 97 L572 97 M566 97 L566 110" strokeWidth="1.3" />
-      </g>
+      {/* A small cleared terrace covers the former bluff line behind the lower
+          level, then the cabin sits on the newly drawn ground plane. */}
+      <path d="M518 107 H620 V137 Q 569 134 518 137 Z" fill={SHORE_BASE} />
+      <Cabin />
 
       {/* Switchback staircase down to the shoreline, drawn as two parallel dashed
           rails (like the Figma trail). Same path, offset left/right. */}
@@ -354,11 +415,11 @@ export function CabinScene({ className = "" }: { className?: string }) {
       >
         <path
           transform="translate(-2.8 0)"
-          d="M610 108 C606 117 611 125 619 130 C614 138 620 146 629 150 C625 157 637 163 645 169"
+          d="M609 106 C606 116 611 124 619 130 C614 138 620 146 629 150 C625 157 637 163 645 169"
         />
         <path
           transform="translate(2.8 0)"
-          d="M610 108 C606 117 611 125 619 130 C614 138 620 146 629 150 C625 157 637 163 645 169"
+          d="M609 106 C606 116 611 124 619 130 C614 138 620 146 629 150 C625 157 637 163 645 169"
         />
       </g>
 

@@ -188,17 +188,16 @@ export const guideTopics: GuideTopic[] = [
     category: "Getting settled",
     icon: "signal",
     visibility: "approved_guest",
-    summary: "As of 2020 the cabin had no internet service of its own — this whole section needs a fresh look.",
+    summary: "The cabin now has Xfinity Wi-Fi.",
     body: [
-      "The 2020 letter's options: the neighbors' wireless (“Ater Guest” — historical info; ask the family whether that's still current and welcome before relying on it), or use your phone as a hotspot.",
+      "Use the protected Cabin Access panel below for the Wi-Fi network and password, private address, directions, and front-door code.",
       "A Fire Stick is attached to the TV — you're welcome to use it. The speaker under the TV is Bluetooth, good for streaming music.",
     ],
     notes: [
-      "An admin should verify: is there cabin internet now? Is the neighbor arrangement still current? Fire Stick logins?",
+      "Access details are checked on the server and are not published in the guide source or saved in the browser.",
     ],
-    lastVerified: "2020-05-01",
-    needsVerification: true,
-    sourceNote: SOURCE_2020,
+    lastVerified: "2026-07-19",
+    sourceNote: "Xfinity service and network confirmed by the family; TV and Bluetooth notes retained from the May 2020 letter.",
   },
 
   // --- Barbecue ---------------------------------------------------------------------
@@ -312,16 +311,23 @@ export const guideTopics: GuideTopic[] = [
     summary: "There is no curbside garbage or recycling service at the cabin — everything leaves with you.",
     body: [
       "Empty all the cans before you go and take trash and recycling home with you, or run them to the transfer station on your way out.",
-      "Per the 2020 letter: the dump / transfer station is just off the Hansville road, on the right before you reach the casino heading back toward Kingston. It was open Thursday–Monday, 9–4; recycling free, trash about $6 a bag.",
-      "Hours, days, prices, and accepted recycling materials are not confirmed — they may have changed since 2020. An admin should locate the current official schedule for the Kitsap County transfer station nearest Hansville and update this section with a verified source link.",
+      "The Hansville Recycling & Garbage Facility is at 7791 NE Ecology Road in Kingston, about 14 minutes from the cabin. It is open 8:30am–4pm Wednesday through Monday and closed Tuesday and listed holidays.",
+      "Kitsap County's 2026 fee is $15 for the first 32-gallon can of garbage and $9 for each additional can. Common clean, loose recyclables are accepted free; check the official facility page for the full accepted-materials list before loading the car.",
     ],
     notes: [
-      "Do not present the hours or prices above as current — they are from 2020 and have not been re-verified.",
-      "The transfer station is also listed under Nearby Essentials on the Tides, Weather & Nearby page.",
+      "Secure every load. The county charges an additional fee for unsecured loads.",
+      "Payment accepted: Visa, MasterCard, cash, or check with valid ID. Loads must be unloaded by hand; large or bulky loads may be redirected to Olympic View Transfer Station.",
+      "Free recycling must be empty, clean, loose, and unbagged. Check the official facility page for restricted materials and weather closures before leaving.",
     ],
-    lastVerified: "2020-05-01",
-    needsVerification: true,
-    sourceNote: "From the May 2020 welcome letter. Provider, hours, and prices not re-verified — official source needed.",
+    sourceLinks: [
+      {
+        label: "Official dump hours, fees & accepted items",
+        url: "https://www.kitsap.gov/pw/Pages/NK_Recycle_Garbage_Facility.aspx",
+      },
+      { label: "Directions and nearby essentials", url: "/local#essentials" },
+    ],
+    lastVerified: "2026-07-19",
+    sourceNote: "Verified against the Kitsap County Hansville Recycling & Garbage Facility page; route estimate calculated from the private cabin origin.",
   },
 
   // --- Supplies / restock ---------------------------------------------------------------
@@ -405,11 +411,11 @@ export const emergencyInfo: EmergencyInfo = {
     { label: "Electrical panel", value: "East wall of the basement laundry room" },
     { label: "Fire extinguisher", value: "Location placeholder — an admin should confirm and photograph", needsVerification: true },
     { label: "First aid kit", value: "Above the fridge (placeholder — confirm)", needsVerification: true },
-    { label: "Nearest urgent care", value: "Placeholder — see Nearby Essentials; verify current hours", needsVerification: true },
-    { label: "Nearest hospital", value: "St. Michael Medical Center, Bremerton (placeholder — verify drive time from Hansville)", needsVerification: true },
+    { label: "Nearest urgent care", value: "MultiCare Indigo Urgent Care, 19835 10th Ave NE Suite B, Poulsbo — about 31 minutes / 16.3 miles; walk-ins 8am–8pm daily; (360) 779-7011" },
+    { label: "Nearest hospital", value: "St. Michael Medical Center, 1800 NW Myhre Road, Silverdale — about 43 minutes off-peak; 24-hour emergency and trauma care" },
   ],
-  lastVerified: "2020-05-01",
-  sourceNote: "Private address is stored server-side. Shutoffs are from the May 2020 water/heating instructions.",
+  lastVerified: "2026-07-19",
+  sourceNote: "Private address remains server-side. Urgent care and hospital details were verified with their providers; drive estimates were calculated from the private cabin origin. Cabin shutoffs remain from the May 2020 instructions.",
 };
 
 // --- Family contacts (family/admin only, masked) -----------------------------------

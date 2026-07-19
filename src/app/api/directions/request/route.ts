@@ -48,14 +48,14 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const subject = `Directions access request from ${requesterName}`;
+  const subject = `Cabin access request from ${requesterName}`;
   const message = [
-    `${requesterName} is requesting private directions to Florine's Place.`,
+    `${requesterName} is requesting cabin access for Florine's Place.`,
     "",
     `Reply to: ${requesterEmail}`,
     note ? `Visit note: ${note}` : "Visit note: none provided",
     "",
-    "Please confirm their stay before sharing access. The private address and passcode are not included in this request.",
+    "Please confirm their stay before sharing the access code. The private address, Wi-Fi password, and door code are not included in this request.",
   ].join("\n");
 
   const resendKey = process.env.RESEND_API_KEY?.trim();

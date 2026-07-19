@@ -7,15 +7,20 @@
     "dev": "npm run dev:demo",
     "dev:demo": "NEXT_PUBLIC_APP_MODE=demo next dev",
     "dev:live": "NEXT_PUBLIC_APP_MODE=live next dev",
-    "build": "npm run build:live",
+    "build": "next build",
     "build:demo": "NEXT_PUBLIC_APP_MODE=demo next build",
     "build:live": "NEXT_PUBLIC_APP_MODE=live next build",
     "start": "npm run start:live",
     "start:demo": "NEXT_PUBLIC_APP_MODE=demo next start",
     "start:live": "NEXT_PUBLIC_APP_MODE=live next start",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "preview:live": "NEXT_PUBLIC_APP_MODE=live opennextjs-cloudflare build --config wrangler.jsonc --env live && opennextjs-cloudflare preview --config wrangler.jsonc --env live",
+    "preview:demo": "NEXT_PUBLIC_APP_MODE=demo opennextjs-cloudflare build --config wrangler.jsonc --env demo && opennextjs-cloudflare preview --config wrangler.jsonc --env demo",
+    "deploy:live": "NEXT_PUBLIC_APP_MODE=live opennextjs-cloudflare deploy --config wrangler.jsonc --env live -- --keep-vars",
+    "deploy:demo": "NEXT_PUBLIC_APP_MODE=demo opennextjs-cloudflare deploy --config wrangler.jsonc --env demo -- --keep-vars"
   },
   "dependencies": {
+    "@opennextjs/cloudflare": "^1.20.1",
     "@supabase/supabase-js": "2.110.7",
     "next": "^15.3.4",
     "react": "^19.1.0",
@@ -27,6 +32,10 @@
     "@types/react": "^19.1.0",
     "@types/react-dom": "^19.1.0",
     "tailwindcss": "^4.1.10",
-    "typescript": "^5.8.0"
+    "typescript": "^5.8.0",
+    "wrangler": "^4.112.0"
+  },
+  "overrides": {
+    "postcss": "8.5.16"
   }
 }

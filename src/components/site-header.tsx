@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { useRole, roleLabels } from "@/lib/role-context";
 import { Lantern } from "@/components/shore-art";
+import { APP_MODE } from "@/lib/app-mode";
 import type { Role } from "@/lib/types";
 
 /**
@@ -122,7 +123,7 @@ export function SiteHeader() {
         </nav>
 
         <div className="flex items-center gap-2">
-          <RolePicker role={role} setRole={setRole} />
+          {APP_MODE === "demo" && <RolePicker role={role} setRole={setRole} />}
           <button
             type="button"
             className="rounded-full border-2 border-canal/40 px-3 py-1.5 text-sm font-semibold text-canaldeep lg:hidden"

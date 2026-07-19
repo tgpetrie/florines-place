@@ -23,6 +23,7 @@ function mockAction(label: string) {
 // --- Status badges -------------------------------------------------------------
 
 const placeTones: Record<PlaceStatus, Parameters<typeof Badge>[0]["tone"]> = {
+  "Verified Listing": "tide",
   Recommended: "seaweed",
   "Used Before": "navy",
   "Need to Verify": "sand",
@@ -125,13 +126,28 @@ export function PlaceCard({ place }: { place: LocalPlace }) {
         </div>
         <div className="flex gap-2">
           <dt className="w-16 shrink-0 font-bold text-cedar">Web</dt>
-          <dd className="break-all">{place.website}</dd>
+          <dd>
+            <a href={place.website} target="_blank" rel="noreferrer" className="text-link font-bold">
+              Official site ↗
+            </a>
+          </dd>
         </div>
         <div className="flex gap-2">
           <dt className="w-16 shrink-0 font-bold text-cedar">Hours</dt>
           <dd>{place.hours}</dd>
         </div>
       </dl>
+
+      {place.directionsUrl && (
+        <a
+          href={place.directionsUrl}
+          target="_blank"
+          rel="noreferrer"
+          className="mt-3 inline-flex min-h-11 items-center justify-center rounded-full bg-tide px-4 py-2 text-sm font-bold text-white shadow-sm transition hover:bg-tide/90"
+        >
+          Directions from where I am →
+        </a>
+      )}
 
       {place.seasonalNote && (
         <p className="mt-2 rounded-lg bg-tide/10 px-3 py-2 text-xs text-tide">

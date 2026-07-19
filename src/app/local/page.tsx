@@ -20,6 +20,7 @@ import {
 import { specialDates } from "@/data/special-dates";
 import { localPlaces } from "@/data/local-places";
 import { harvestResources, harvestWarning, officialLinks } from "@/data/harvest";
+import { APP_MODE } from "@/lib/app-mode";
 import { shortDate } from "@/lib/selectors";
 import type { SpecialDateKind } from "@/lib/types";
 
@@ -42,13 +43,16 @@ function isUpcoming(event: { date: string; time: string }): boolean {
 }
 
 const sections = [
-  { id: "conditions", label: "Current Conditions" },
-  { id: "tides", label: "Tide Calendar" },
-  { id: "history", label: "Looking Back" },
-  { id: "dates", label: "Holidays & Dates" },
+  ...(APP_MODE === "demo"
+    ? [
+        { id: "conditions", label: "Current Conditions" },
+        { id: "tides", label: "Tide Calendar" },
+        { id: "history", label: "Looking Back" },
+        { id: "dates", label: "Holidays & Dates" },
+      ]
+    : [{ id: "conditions", label: "Current Conditions" }]),
   { id: "essentials", label: "Nearby Essentials" },
   { id: "stops", label: "Local Stops & Experiences" },
-  { id: "yard", label: "Yard Work & Equipment" },
   { id: "harvest", label: "Fishing & Shellfish" },
 ];
 
@@ -127,15 +131,17 @@ export default function LocalPage() {
 
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
         {/* 1. Current conditions */}
-        <SectionHeading
-          id="conditions"
-          icon={<MoonIcon className="h-8 w-8" />}
-          title="Current Conditions"
-          lede="A snapshot of the canal right now. Mock data for this first version — live weather, NOAA tides, and sun/moon data connect here later."
-        />
-        <div className="mt-2"><PlaceholderTag /></div>
+        {APP_MODE === "demo" ? (
+          <>
+            <SectionHeading
+              id="conditions"
+              icon={<MoonIcon className="h-8 w-8" />}
+              title="Current Conditions"
+              lede="A snapshot of the canal right now. Mock data for this first version — live weather, NOAA tides, and sun/moon data connect here later."
+            />
+            <div className="mt-2"><PlaceholderTag /></div>
 
-        <div className="mt-5 grid gap-6 lg:grid-cols-3">
+            <div className="mt-5 grid gap-6 lg:grid-cols-3">
           {/* Weather */}
           <div className="card p-6">
             <p className="eyebrow">Weather · {weatherNow.asOf}</p>
@@ -184,9 +190,26 @@ export default function LocalPage() {
               <p className="text-sm italic text-ink-soft">{weatherNow.moonNote}</p>
             </div>
           </div>
-        </div>
+            </div>
+          </>
+        ) : (
+          <>
+            <SectionHeading
+              id="conditions"
+              icon={<MoonIcon className="h-8 w-8" />}
+              title="Current Conditions"
+              lede="Live conditions will appear here after the weather and NOAA tide feeds are connected."
+            />
+            <div className="card mt-5 p-8 text-center">
+              <p className="text-lg font-bold text-heading-strong">Live weather and tides are not connected yet.</p>
+              <p className="mt-2 text-sm text-ink-soft">No sample conditions are shown in the live site.</p>
+            </div>
+          </>
+        )}
 
         {/* 2. Tide calendar */}
+        {APP_MODE === "demo" && (
+          <>
         <SectionHeading
           id="tides"
           icon={<SandDollar className="h-7 w-7" />}
@@ -319,13 +342,15 @@ export default function LocalPage() {
             </ul>
           </div>
         </div>
+          </>
+        )}
 
         {/* 5. Nearby essentials */}
         <SectionHeading
           id="essentials"
           icon={<Lantern className="h-8 w-7" />}
           title="Nearby Essentials"
-          lede="Groceries, gas, hardware, medical, and the practical necessities. All addresses, phones, and hours are placeholders — that's what the 'last verified' dates are for."
+          lede="Current grocery, waste, and medical essentials. Drive times are off-peak estimates from the cabin; open Directions for live routing from your phone."
         />
         <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {essentials.map((place) => (
@@ -347,17 +372,21 @@ export default function LocalPage() {
         </div>
 
         {/* 7. Yard work & equipment */}
-        <SectionHeading
-          id="yard"
-          icon={<CedarSprig className="h-8 w-8" />}
-          title="Yard Work & Equipment Help"
-          lede="Who to call (or what to rent) for the cabin's bigger chores — brush, pressure washing, dump runs, and tools. Statuses reflect what the family has actually tried."
-        />
-        <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {yard.map((place) => (
-            <PlaceCard key={place.id} place={place} />
-          ))}
-        </div>
+        {yard.length > 0 && (
+          <>
+            <SectionHeading
+              id="yard"
+              icon={<CedarSprig className="h-8 w-8" />}
+              title="Yard Work & Equipment Help"
+              lede="Family-confirmed vendors and equipment options for the cabin's bigger chores."
+            />
+            <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {yard.map((place) => (
+                <PlaceCard key={place.id} place={place} />
+              ))}
+            </div>
+          </>
+        )}
 
         {/* 8. Fishing, crabbing & shellfish */}
         <SectionHeading

@@ -1,0 +1,50 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "florines-place",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2026-07-19",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": false,
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+  "observability": {
+    "enabled": true
+  },
+  "env": {
+    "live": {
+      "name": "florines-place-live",
+      "routes": [
+        {
+          "pattern": "petriecabin.com",
+          "custom_domain": true
+        }
+      ],
+      "vars": {
+        "NEXT_PUBLIC_APP_MODE": "live"
+      },
+      "assets": {
+        "directory": ".open-next/assets",
+        "binding": "ASSETS"
+      }
+    },
+    "demo": {
+      "name": "florines-place-demo",
+      "routes": [
+        {
+          "pattern": "demo.petriecabin.com",
+          "custom_domain": true
+        }
+      ],
+      "vars": {
+        "NEXT_PUBLIC_APP_MODE": "demo",
+        "NEXT_PUBLIC_DEMO_START_MONTH": "2026-07"
+      },
+      "assets": {
+        "directory": ".open-next/assets",
+        "binding": "ASSETS"
+      }
+    }
+  }
+}

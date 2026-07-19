@@ -38,7 +38,7 @@ function mockAction(label: string) {
 function QuietTags({ topic }: { topic: Pick<GuideTopic, "needsVerification" | "visibility"> }) {
   return (
     <span className="flex items-center gap-2 text-[0.68rem] font-bold uppercase tracking-wide text-driftwood">
-      {topic.needsVerification && <span className="text-cedar">Needs check</span>}
+      {topic.needsVerification && <span className="text-cedar">Family check</span>}
       {topic.visibility !== "public" && topic.visibility !== "approved_guest" && (
         <span>{topic.visibility === "family" ? "Family" : "Admin"}</span>
       )}
@@ -160,6 +160,8 @@ function TopicBody({ topic }: { topic: GuideTopic }) {
         </ul>
       )}
 
+      {topic.id === "internet" && <PrivateDirections className="mt-4" />}
+
       {topic.photoPlaceholders && (
         <div className="mt-4 flex flex-wrap gap-2">
           {topic.photoPlaceholders.map((label) => (
@@ -169,6 +171,22 @@ function TopicBody({ topic }: { topic: GuideTopic }) {
             >
               📷 Photo coming: {label}
             </span>
+          ))}
+        </div>
+      )}
+
+      {topic.sourceLinks && topic.sourceLinks.length > 0 && (
+        <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+          {topic.sourceLinks.map((link) => (
+            <a
+              key={link.url}
+              href={link.url}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex min-h-11 items-center justify-center rounded-full border border-tide/30 bg-tide/10 px-4 py-2 text-sm font-bold text-tide transition hover:bg-tide hover:text-white"
+            >
+              {link.label} ↗
+            </a>
           ))}
         </div>
       )}
@@ -447,7 +465,7 @@ export default function GuidePage() {
                               {item.value}
                               {item.needsVerification && (
                                 <span className="ml-2 text-[0.68rem] font-bold uppercase tracking-wide text-driftwood">
-                                  Needs check
+                                  Family check
                                 </span>
                               )}
                             </dd>

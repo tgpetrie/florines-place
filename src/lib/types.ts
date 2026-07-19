@@ -211,6 +211,7 @@ export interface GuideTopic {
   checklistGroups?: { title: string; items: string[] }[]; // grouped checklists
   notes?: string[]; // callout notes / reminders
   photoPlaceholders?: string[]; // future photos/diagrams
+  sourceLinks?: { label: string; url: string }[]; // current official references
   lastVerified?: string; // ISO date
   needsVerification?: boolean; // info may have changed since the source
   sourceNote?: string; // where this content came from
@@ -335,6 +336,7 @@ export interface SpecialDate {
 export type PlaceGroup = "essentials" | "stops" | "yard";
 
 export type PlaceStatus =
+  | "Verified Listing"
   | "Recommended"
   | "Used Before"
   | "Need to Verify"
@@ -350,6 +352,7 @@ export interface LocalPlace {
   distance: string; // placeholder, e.g. "~8 min north"
   phone: string;
   website: string;
+  directionsUrl?: string;
   hours: string;
   seasonalNote?: string;
   ageNote?: string; // age restrictions / legal requirements, stated plainly

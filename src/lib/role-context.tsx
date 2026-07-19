@@ -10,6 +10,7 @@
  */
 
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { APP_MODE } from "@/lib/app-mode";
 import type { Role } from "@/lib/types";
 
 interface RoleContextValue {
@@ -29,6 +30,7 @@ export function RoleProvider({ children }: { children: ReactNode }) {
 
   // Restore the previously chosen role after mount (SSR-safe).
   useEffect(() => {
+    if (APP_MODE !== "demo") return;
     const saved = window.localStorage.getItem(STORAGE_KEY);
     if (saved === "guest" || saved === "family" || saved === "admin") {
       setRoleState(saved);
@@ -36,6 +38,7 @@ export function RoleProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const setRole = (next: Role) => {
+    if (APP_MODE !== "demo") return;
     setRoleState(next);
     window.localStorage.setItem(STORAGE_KEY, next);
   };

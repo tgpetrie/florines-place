@@ -1,10 +1,11 @@
 import type { NextConfig } from "next";
 import path from "node:path";
 
-const mode = process.env.NEXT_PUBLIC_APP_MODE === "live" ? "live" : "demo";
+// Fail closed: an unspecified production build is always the live, no-seed
+// version. The demo deployment has to opt in explicitly.
+const mode = process.env.NEXT_PUBLIC_APP_MODE === "demo" ? "demo" : "live";
 
 const nextConfig: NextConfig = {
-  distDir: mode === "live" ? ".next-live" : ".next-demo",
   webpack(config) {
     const implementation = path.resolve(
       process.cwd(),

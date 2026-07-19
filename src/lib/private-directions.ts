@@ -21,9 +21,12 @@ const approverEnv: Record<ApproverId, string | undefined> = {
 export function getPrivateDirectionsConfig() {
   const address = process.env.CABIN_PRIVATE_ADDRESS?.trim();
   const passcode = process.env.CABIN_DIRECTIONS_PASSCODE?.trim();
+  const wifiName = process.env.CABIN_WIFI_NAME?.trim();
+  const wifiPassword = process.env.CABIN_WIFI_PASSWORD?.trim();
+  const doorCode = process.env.CABIN_DOOR_CODE?.trim();
 
-  if (!address || !passcode) return null;
-  return { address, passcode };
+  if (!address || !passcode || !wifiName || !wifiPassword || !doorCode) return null;
+  return { address, passcode, wifiName, wifiPassword, doorCode };
 }
 
 export function isApproverId(value: string): value is ApproverId {
