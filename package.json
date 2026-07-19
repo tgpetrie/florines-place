@@ -16,8 +16,8 @@
     "typecheck": "tsc --noEmit",
     "preview:live": "NEXT_PUBLIC_APP_MODE=live opennextjs-cloudflare build --config wrangler.jsonc --env live && opennextjs-cloudflare preview --config wrangler.jsonc --env live",
     "preview:demo": "NEXT_PUBLIC_APP_MODE=demo opennextjs-cloudflare build --config wrangler.jsonc --env demo && opennextjs-cloudflare preview --config wrangler.jsonc --env demo",
-    "deploy:live": "NEXT_PUBLIC_APP_MODE=live opennextjs-cloudflare deploy --config wrangler.jsonc --env live -- --keep-vars",
-    "deploy:demo": "NEXT_PUBLIC_APP_MODE=demo opennextjs-cloudflare deploy --config wrangler.jsonc --env demo -- --keep-vars"
+    "deploy:live": "NEXT_PUBLIC_APP_MODE=live opennextjs-cloudflare build --config wrangler.jsonc --env live && opennextjs-cloudflare deploy --config wrangler.jsonc --env live -- --keep-vars",
+    "deploy:demo": "NEXT_PUBLIC_APP_MODE=demo opennextjs-cloudflare build --config wrangler.jsonc --env demo && opennextjs-cloudflare deploy --config wrangler.jsonc --env demo -- --keep-vars"
   },
   "dependencies": {
     "@opennextjs/cloudflare": "^1.20.1",
