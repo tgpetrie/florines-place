@@ -157,6 +157,8 @@ export interface Idea {
   estimatedCost: string; // free-form, e.g. "$200–400"
   status: IdeaStatus;
   commentCount: number; // placeholder until real comments exist
+  /** Private — set only for public suggestions; present only when the viewer is admin. */
+  contact?: string;
 }
 
 // --- Guestbook ---------------------------------------------------------------
@@ -333,7 +335,7 @@ export interface SpecialDate {
  * yard/equipment help — discriminated by `group`. They share all fields, so
  * they share one card, one admin flow, and (later) one Supabase table.
  */
-export type PlaceGroup = "essentials" | "stops" | "yard";
+export type PlaceGroup = "essentials" | "stops" | "yard" | "events";
 
 export type PlaceStatus =
   | "Verified Listing"
@@ -435,22 +437,42 @@ export interface PlaceSignal {
   isActive: boolean;
 }
 
-// --- Porch Notes (family message board) ---------------------------------------
+// --- Porch Notes (supplies / needs attention) ----------------------------------
+
+export type PorchNoteCategory = "supplies" | "maintenance";
 
 /**
- * Simple family message thread — informal cabin conversation.
- * Not tied to a specific stay. Think of it as the cabin's porch whiteboard.
- * BACKEND NOTE: becomes a `porch_notes` table; visibility gates show/hide
- * messages appropriately. `stayId` optionally ties a note to a stay.
+ * Open public board for practical reports — supplies needed, or something
+ * noticed that needs fixing or attention. Anyone can post; no account is
+ * required. `contact` is private — only present in the API response when
+ * the viewer is an admin, so the family can follow up if needed.
  */
 export interface PorchNote {
   id: string;
-  author: string;
+  posterName: string;
   initials: string;
   message: string;
   postedAt: string; // ISO datetime
-  visibility: Visibility;
-  stayId?: string; // optional — if set, note belongs to a specific stay thread
+  category: PorchNoteCategory;
+  imageUrl?: string;
+  contact?: string; // admin-only
+}
+
+// --- Guestbook (live, open thread) ----------------------------------------------
+
+/**
+ * Open public live guestbook — freeform and personal, like the paper cabin
+ * guestbook but ongoing. Anyone can post; no account is required. `contact`
+ * is private — only present in the API response when the viewer is admin.
+ */
+export interface LiveGuestbookEntry {
+  id: string;
+  posterName: string;
+  initials: string;
+  message: string;
+  postedAt: string;
+  imageUrl?: string;
+  contact?: string; // admin-only
 }
 
 // --- Access requests ---------------------------------------------------------

@@ -39,3 +39,6 @@ yarn-error.log*
 
 # Editor local-history snapshots (can contain copies of .env.local)
 .history/
+
+# Firecrawl CLI research cache
+.firecrawl/

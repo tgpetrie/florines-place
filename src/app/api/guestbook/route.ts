@@ -4,43 +4,42 @@ import { createSupabaseAdmin, liveReservationsConfigured } from "@/lib/supabase-
 import { checkRateLimit, requestIp } from "@/lib/server-rate-limit";
 import { getViewerRole } from "@/lib/viewer-role.server";
 import { parseBoardPostForm, uploadBoardImage } from "@/lib/board-posts.server";
-import { loadPorchNotesSnapshot } from "@/lib/porch-notes.server";
+import { loadGuestbookSnapshot } from "@/lib/guestbook.server";
 
 export const dynamic = "force-dynamic";
 
 const noStoreHeaders = { "Cache-Control": "private, no-store, max-age=0" };
-const CATEGORIES = ["supplies", "maintenance"] as const;
 
 export async function GET() {
   const viewerRole = await getViewerRole();
-  const snapshot = await loadPorchNotesSnapshot(viewerRole === "admin");
+  const snapshot = await loadGuestbookSnapshot(viewerRole === "admin");
   return NextResponse.json(snapshot, { headers: noStoreHeaders });
 }
 
 export async function POST(request: NextRequest) {
   if (APP_MODE !== "live" || !liveReservationsConfigured()) {
     return NextResponse.json(
-      { error: "The live Porch Notes board is not connected yet." },
+      { error: "The live guestbook is not connected yet." },
       { status: 503, headers: noStoreHeaders },
     );
   }
 
-  const limit = checkRateLimit(`porch-note:${requestIp(request.headers)}`, 10, 60 * 60 * 1000);
+  const limit = checkRateLimit(`guestbook:${requestIp(request.headers)}`, 10, 60 * 60 * 1000);
   if (!limit.allowed) {
     return NextResponse.json(
-      { error: "Too many notes posted. Please try again later." },
+      { error: "Too many entries posted. Please try again later." },
       { status: 429, headers: { ...noStoreHeaders, "Retry-After": String(limit.retryAfterSeconds) } },
     );
   }
 
-  const parsed = await parseBoardPostForm(request, { categories: CATEGORIES });
+  const parsed = await parseBoardPostForm(request);
   if (!parsed.ok) {
     return NextResponse.json({ error: parsed.error }, { status: 400, headers: noStoreHeaders });
   }
 
   let imagePath: string | null = null;
   if (parsed.post.imageFile) {
-    const uploaded = await uploadBoardImage(parsed.post.imageFile, "porch-notes");
+    const uploaded = await uploadBoardImage(parsed.post.imageFile, "guestbook");
     if (!uploaded.ok) {
       return NextResponse.json({ error: uploaded.error }, { status: 502, headers: noStoreHeaders });
     }
@@ -48,19 +47,18 @@ export async function POST(request: NextRequest) {
   }
 
   const supabase = createSupabaseAdmin();
-  const { error } = await supabase.from("porch_notes").insert({
+  const { error } = await supabase.from("guestbook_entries").insert({
     poster_name: parsed.post.posterName,
     contact: parsed.post.contact,
     message: parsed.post.message,
-    category: parsed.post.category,
     image_path: imagePath,
   });
 
   if (error) {
-    return NextResponse.json({ error: "The note could not be posted." }, { status: 502, headers: noStoreHeaders });
+    return NextResponse.json({ error: "The entry could not be posted." }, { status: 502, headers: noStoreHeaders });
   }
 
   const viewerRole = await getViewerRole();
-  const snapshot = await loadPorchNotesSnapshot(viewerRole === "admin");
+  const snapshot = await loadGuestbookSnapshot(viewerRole === "admin");
   return NextResponse.json(snapshot, { status: 201, headers: noStoreHeaders });
 }

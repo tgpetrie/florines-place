@@ -14,16 +14,18 @@ import { PageHeader } from "@/components/page-header";
 import { CalendarBadge, FeeBadge, SupplyBadge, IdeaBadge, Badge } from "@/components/status-badge";
 import { PorchBoard } from "@/components/porch-board";
 import { familyPlans as demoFamilyPlans } from "@/data/calendar";
-import { supplyItems } from "@/data/supplies";
-import { ideas } from "@/data/ideas";
+import { supplyItems as demoSupplyItems } from "@/data/supplies";
+import { ideas as demoIdeas } from "@/data/ideas";
 import { guestbookEntries } from "@/data/guestbook";
-import { porchNotes as demoPorchNotes } from "@/data/messages";
+import { demoPorchNotes } from "@/data/messages";
 import { dateRange, shortDate } from "@/lib/selectors";
 import { APP_MODE } from "@/lib/app-mode";
 import { loadDemoStayRequests, loadReservations, updateStayRequest } from "@/lib/reservations-client";
 import { loadPorchNotes } from "@/lib/porch-notes-client";
 import { loadAccessRequests, updateAccessRequest } from "@/lib/access-requests-client";
-import type { AccessRequest, CalendarEvent, PorchNote, StayRequest } from "@/lib/types";
+import { loadSupplies } from "@/lib/supplies-client";
+import { loadIdeas } from "@/lib/ideas-client";
+import type { AccessRequest, CalendarEvent, Idea, PorchNote, StayRequest, SupplyItem } from "@/lib/types";
 
 function mockAction(label: string) {
   // Placeholder: real mutations arrive with Supabase.
@@ -45,7 +47,7 @@ function Section({ title, children, id }: { title: string; children: React.React
 }
 
 export default function DashboardPage() {
-  const { role, isAuthenticated } = useRole();
+  const { role } = useRole();
   const isAdmin = role === "admin";
   const [reservationRequests, setReservationRequests] = useState<StayRequest[]>([]);
   const [reservationEvents, setReservationEvents] = useState<CalendarEvent[]>([]);
@@ -62,6 +64,15 @@ export default function DashboardPage() {
       return;
     }
     loadPorchNotes().then(setPorchNotes).catch(() => setPorchNotes([]));
+  }, []);
+
+  const [liveSupplyItems, setLiveSupplyItems] = useState<SupplyItem[]>([]);
+  const [liveIdeas, setLiveIdeas] = useState<Idea[]>([]);
+
+  useEffect(() => {
+    if (APP_MODE !== "live") return;
+    loadSupplies().then(setLiveSupplyItems).catch(() => setLiveSupplyItems([]));
+    loadIdeas().then(setLiveIdeas).catch(() => setLiveIdeas([]));
   }, []);
 
   const refreshAccessRequests = useCallback(async () => {
@@ -186,10 +197,10 @@ export default function DashboardPage() {
 
   const pending = reservationRequests.filter((r) => r.status === "pending");
   const approved = reservationRequests.filter((r) => r.status === "approved");
-  const recentSupplies = [...(APP_MODE === "demo" ? supplyItems : [])]
+  const recentSupplies = [...(APP_MODE === "demo" ? demoSupplyItems : liveSupplyItems)]
     .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
     .slice(0, 4);
-  const activeIdeas = (APP_MODE === "demo" ? ideas : [])
+  const activeIdeas = (APP_MODE === "demo" ? demoIdeas : liveIdeas)
     .filter((i) => i.status !== "Done" && i.status !== "Not Now")
     .slice(0, 4);
   const maintenance = reservationEvents.filter((e) => e.status === "maintenance");
@@ -471,7 +482,7 @@ export default function DashboardPage() {
             </Link>
           </div>
           <div className="mt-4">
-            <PorchBoard initialNotes={porchNotes} isAuthenticated={isAuthenticated} />
+            <PorchBoard initialNotes={porchNotes} showContact={isAdmin} />
           </div>
         </section>
 

@@ -11,7 +11,7 @@ import { PlaceSignalsHome } from "@/components/place-signals";
 import { PorchNotesPreview } from "@/components/porch-notes";
 import { loadConditionsSnapshot } from "@/lib/conditions.server";
 import { loadPorchNotesSnapshot } from "@/lib/porch-notes.server";
-import { porchNotes as demoPorchNotes } from "@/data/messages";
+import { demoPorchNotes } from "@/data/messages";
 import { APP_MODE } from "@/lib/app-mode";
 import { nextTide } from "@/lib/selectors";
 

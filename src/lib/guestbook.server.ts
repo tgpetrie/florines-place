@@ -3,11 +3,11 @@ import "server-only";
 import { APP_MODE } from "@/lib/app-mode";
 import { createSupabaseAdmin, liveReservationsConfigured } from "@/lib/supabase-admin";
 import { publicImageUrl } from "@/lib/board-posts.server";
-import type { PorchNote, PorchNoteCategory } from "@/lib/types";
+import type { LiveGuestbookEntry } from "@/lib/types";
 
-export interface PorchNotesSnapshot {
+export interface GuestbookSnapshot {
   connected: boolean;
-  notes: PorchNote[];
+  entries: LiveGuestbookEntry[];
 }
 
 function initialsFor(name: string): string {
@@ -17,41 +17,39 @@ function initialsFor(name: string): string {
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
 
-interface PorchNoteRow {
+interface GuestbookRow {
   id: string;
   poster_name: string;
   contact: string;
   message: string;
-  category: PorchNoteCategory;
   image_path: string | null;
   posted_at: string;
 }
 
 /** includeContact should only ever be true for an admin viewer — never expose it publicly. */
-export async function loadPorchNotesSnapshot(includeContact = false): Promise<PorchNotesSnapshot> {
+export async function loadGuestbookSnapshot(includeContact = false): Promise<GuestbookSnapshot> {
   if (APP_MODE !== "live" || !liveReservationsConfigured()) {
-    return { connected: false, notes: [] };
+    return { connected: false, entries: [] };
   }
 
   const supabase = createSupabaseAdmin();
   const { data, error } = await supabase
-    .from("porch_notes")
-    .select("id, poster_name, contact, message, category, image_path, posted_at")
+    .from("guestbook_entries")
+    .select("id, poster_name, contact, message, image_path, posted_at")
     .order("posted_at", { ascending: false })
     .limit(200);
 
-  if (error) return { connected: false, notes: [] };
+  if (error) return { connected: false, entries: [] };
 
-  const notes: PorchNote[] = ((data ?? []) as PorchNoteRow[]).map((row) => ({
+  const entries: LiveGuestbookEntry[] = ((data ?? []) as GuestbookRow[]).map((row) => ({
     id: row.id,
     posterName: row.poster_name,
     initials: initialsFor(row.poster_name),
     message: row.message,
     postedAt: row.posted_at,
-    category: row.category,
     imageUrl: publicImageUrl(row.image_path),
     contact: includeContact ? row.contact : undefined,
   }));
 
-  return { connected: true, notes };
+  return { connected: true, entries };
 }

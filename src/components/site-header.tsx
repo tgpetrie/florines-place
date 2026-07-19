@@ -34,6 +34,7 @@ const nav: NavItem[] = [
     ],
   },
   { label: "Porch Notes", href: "/porch", match: ["/porch"] },
+  { label: "Guestbook", href: "/guestbook", match: ["/guestbook"] },
   {
     label: "Family Dashboard",
     href: "/dashboard",
@@ -47,13 +48,12 @@ const nav: NavItem[] = [
   {
     label: "Guide",
     href: "/guide",
-    match: ["/guide", "/local", "/guestbook"],
+    match: ["/guide", "/local"],
     items: [
       { href: "/guide", label: "Cabin Guide" },
       { href: "/local#conditions", label: "Tides & Weather" },
       { href: "/local#stops", label: "Nearby" },
       { href: "/local#harvest", label: "Fishing & Shellfish" },
-      { href: "/guestbook", label: "Guestbook" },
     ],
   },
 ];

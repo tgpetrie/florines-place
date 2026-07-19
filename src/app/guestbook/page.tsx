@@ -1,22 +1,35 @@
 "use client";
 
 /**
- * Guestbook — a digital version of the paper cabin guestbook.
- * Never reviews, never ratings. Entries marked "admins" only appear when
- * viewing as Admin (mock for future row-level security).
+ * Guestbook.
+ *
+ * Live mode: an open, ongoing thread anyone can sign — no account needed.
+ * Demo mode: the original per-stay mock entries (unchanged), since there's
+ * no live backend to demonstrate in demo builds.
  */
 
+import { useEffect, useState } from "react";
 import { useRole } from "@/lib/role-context";
 import { PageHeader } from "@/components/page-header";
 import { SandDollar } from "@/components/shore-art";
+import { GuestbookBoard } from "@/components/guestbook-board";
 import { guestbookEntries } from "@/data/guestbook";
 import { APP_MODE } from "@/lib/app-mode";
+import { loadGuestbookEntries } from "@/lib/guestbook-client";
+import type { LiveGuestbookEntry } from "@/lib/types";
 
 export default function GuestbookPage() {
   const { role } = useRole();
+  const isAdmin = role === "admin";
   const visible = (APP_MODE === "demo" ? guestbookEntries : []).filter(
     (entry) => entry.visibility === "family" || role === "admin",
   );
+
+  const [liveEntries, setLiveEntries] = useState<LiveGuestbookEntry[]>([]);
+  useEffect(() => {
+    if (APP_MODE !== "live") return;
+    loadGuestbookEntries().then(setLiveEntries).catch(() => setLiveEntries([]));
+  }, []);
 
   return (
     <div className="pb-8">
@@ -28,11 +41,9 @@ export default function GuestbookPage() {
 
       <div className="mx-auto max-w-2xl space-y-6 px-4 sm:px-6">
         {APP_MODE === "live" && (
-          <div className="card p-8 text-center">
-            <h2 className="text-xl text-heading">The live guestbook is empty</h2>
-            <p className="mt-2 text-sm text-ink-soft">No sample stays or notes are shown in the live build.</p>
-          </div>
+          <GuestbookBoard initialEntries={liveEntries} showContact={isAdmin} />
         )}
+
         {visible.map((entry) => (
           <article key={entry.id} className="card p-6 sm:p-8">
             <div className="flex items-baseline justify-between gap-3">

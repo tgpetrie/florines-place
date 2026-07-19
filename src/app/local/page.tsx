@@ -29,6 +29,7 @@ const sections = [
   { id: "dates", label: "Holidays & Dates" },
   { id: "essentials", label: "Nearby Essentials" },
   { id: "stops", label: "Local Stops & Experiences" },
+  { id: "events", label: "Community Events" },
   { id: "harvest", label: "Fishing & Shellfish" },
 ];
 
@@ -88,6 +89,7 @@ export default async function LocalPage() {
   const essentials = localPlaces.filter((p) => p.group === "essentials");
   const stops = localPlaces.filter((p) => p.group === "stops");
   const yard = localPlaces.filter((p) => p.group === "yard");
+  const events = localPlaces.filter((p) => p.group === "events");
 
   const datedSpecials = specialDates.filter((d) => d.date).sort((a, b) => a.date.localeCompare(b.date));
   const reminders = specialDates.filter((d) => !d.date);
@@ -356,6 +358,23 @@ export default async function LocalPage() {
             <PlaceCard key={place.id} place={place} />
           ))}
         </div>
+
+        {/* 6b. Community events */}
+        {events.length > 0 && (
+          <>
+            <SectionHeading
+              id="events"
+              icon={<Lantern className="h-8 w-8" />}
+              title="Community Events"
+              lede="Rummage sales, garage sales, and other neighborhood happenings found online — dates shift year to year, so check the linked source before planning around one."
+            />
+            <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {events.map((place) => (
+                <PlaceCard key={place.id} place={place} />
+              ))}
+            </div>
+          </>
+        )}
 
         {/* 7. Yard work & equipment */}
         {yard.length > 0 && (

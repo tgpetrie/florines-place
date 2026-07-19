@@ -1,52 +1,65 @@
 /**
- * Porch Notes — the family cabin message board.
- * Mock data only; real notes arrive with the backend.
- * BACKEND NOTE: replace with a Supabase query on `porch_notes`,
- * filtered by visibility and ordered by postedAt desc.
+ * Demo-mode mock data for the two open public boards.
+ * Live mode reads from Supabase instead — see porch-notes.server.ts /
+ * guestbook.server.ts. `contact` is omitted here since demo mode never
+ * shows the admin-only view.
  */
-import type { PorchNote } from "@/lib/types";
+import type { LiveGuestbookEntry, PorchNote } from "@/lib/types";
 
-export const porchNotes: PorchNote[] = [
+export const demoPorchNotes: PorchNote[] = [
   {
     id: "pn-1",
-    author: "Maya",
-    initials: "M",
-    message: "We'll arrive around 4:30 Friday. Can someone leave the porch light on?",
-    postedAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(), // 2h ago
-    visibility: "family",
-    stayId: "sr-3",
+    posterName: "Kate P.",
+    initials: "KP",
+    message: "We're almost out of dish soap and paper towels — could use a restock next trip.",
+    postedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+    category: "supplies",
   },
   {
     id: "pn-2",
-    author: "Tom",
-    initials: "T",
-    message: "Porch light switch is behind the fridge — I'll leave it on. Have a good trip.",
-    postedAt: new Date(Date.now() - 1.5 * 60 * 60 * 1000).toISOString(), // 1.5h ago
-    visibility: "family",
-    stayId: "sr-3",
+    posterName: "Greg P.",
+    initials: "GP",
+    message: "The porch light bulb burned out. Might just need a replacement, not sure if it's the fixture.",
+    postedAt: new Date(Date.now() - 30 * 60 * 60 * 1000).toISOString(),
+    category: "maintenance",
   },
   {
     id: "pn-3",
-    author: "Greg",
-    initials: "G",
-    message: "Does anyone know if the dinghy is inflated? Was thinking of taking it out.",
-    postedAt: new Date(Date.now() - 22 * 60 * 60 * 1000).toISOString(), // ~yesterday
-    visibility: "family",
+    posterName: "Maya O.",
+    initials: "MO",
+    message: "Left a full bag of coffee in the pantry for whoever's next. Also we're low on firewood.",
+    postedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
+    category: "supplies",
+  },
+];
+
+export const demoGuestbookEntries: LiveGuestbookEntry[] = [
+  {
+    id: "gb-1",
+    posterName: "Maya O.",
+    initials: "MO",
+    message: "We'll arrive around 4:30 Friday. Can someone leave the porch light on? Can't wait to be back on the canal.",
+    postedAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
   },
   {
-    id: "pn-4",
-    author: "Kate",
-    initials: "K",
-    message: "I left a full bag of coffee in the pantry for whoever arrives next. Enjoy.",
-    postedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(), // 3 days ago
-    visibility: "family",
+    id: "gb-2",
+    posterName: "Tom P.",
+    initials: "TP",
+    message: "Porch light switch is behind the fridge — leaving it on for you. Have a good trip!",
+    postedAt: new Date(Date.now() - 1.5 * 60 * 60 * 1000).toISOString(),
   },
   {
-    id: "pn-5",
-    author: "Maya",
-    initials: "M",
-    message: "Low tide at 11am Saturday looks really good — planning to dig for clams if the season is open. Anyone want to join?",
-    postedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(), // 5 days ago
-    visibility: "family",
+    id: "gb-3",
+    posterName: "Greg P.",
+    initials: "GP",
+    message: "Low tide at 11am Saturday looked incredible — dug clams for the first time in years with the kids.",
+    postedAt: new Date(Date.now() - 22 * 60 * 60 * 1000).toISOString(),
+  },
+  {
+    id: "gb-4",
+    posterName: "Peggy P.",
+    initials: "PP",
+    message: "Quiet weekend, good weather, the eagles were out every morning. This place never gets old.",
+    postedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
   },
 ];

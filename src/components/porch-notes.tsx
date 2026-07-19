@@ -1,16 +1,28 @@
 /**
- * Porch Notes — the public family cabin message board.
+ * Porch Notes — the open public board for practical reports: supplies
+ * needed, or something noticed that needs fixing or attention. Anyone can
+ * post; no account required.
  *
  * Two surfaces:
  *   <PorchNotesPreview notes /> — compact 3-message strip for the homepage
  *   <PorchNotesList notes />    — full list, used inside <PorchBoard>
  *
  * Both are pure/presentational — the caller supplies notes (live snapshot or
- * demo mock data). Posting lives in <PorchBoard> / <PorchComposer>.
+ * demo mock data). Posting lives in <PorchBoard> / <OpenBoardComposer>.
  */
 
 import Link from "next/link";
-import type { PorchNote } from "@/lib/types";
+import type { PorchNote, PorchNoteCategory } from "@/lib/types";
+
+const CATEGORY_LABEL: Record<PorchNoteCategory, string> = {
+  supplies: "Supplies",
+  maintenance: "Needs attention",
+};
+
+const CATEGORY_TONE: Record<PorchNoteCategory, string> = {
+  supplies: "bg-tide/15 text-tide",
+  maintenance: "bg-rust/15 text-rust",
+};
 
 function timeAgo(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime();
@@ -29,6 +41,14 @@ function Avatar({ initials }: { initials: string }) {
   return (
     <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-cedarwarm/20 text-[0.65rem] font-bold text-cedarwarm">
       {initials}
+    </span>
+  );
+}
+
+function CategoryBadge({ category }: { category: PorchNoteCategory }) {
+  return (
+    <span className={`rounded-full px-2 py-0.5 text-[0.65rem] font-semibold ${CATEGORY_TONE[category]}`}>
+      {CATEGORY_LABEL[category]}
     </span>
   );
 }
@@ -56,13 +76,9 @@ export function PorchNotesPreview({ notes }: { notes: PorchNote[] }) {
               <Avatar initials={note.initials} />
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
-                  <span className="text-sm font-semibold text-ink">{note.author}</span>
+                  <span className="text-sm font-semibold text-ink">{note.posterName}</span>
                   <span className="text-xs text-driftwood">{timeAgo(note.postedAt)}</span>
-                  {note.stayId && (
-                    <span className="rounded-full bg-sandshadow/25 px-2 py-0.5 text-[0.65rem] font-semibold text-driftwood">
-                      re: stay
-                    </span>
-                  )}
+                  <CategoryBadge category={note.category} />
                 </div>
                 <p className="mt-0.5 line-clamp-2 text-sm leading-relaxed text-ink-soft">{note.message}</p>
               </div>
@@ -76,7 +92,7 @@ export function PorchNotesPreview({ notes }: { notes: PorchNote[] }) {
 
 // --- Full list ----------------------------------------------------------------
 
-export function PorchNotesList({ notes }: { notes: PorchNote[] }) {
+export function PorchNotesList({ notes, showContact = false }: { notes: PorchNote[]; showContact?: boolean }) {
   return (
     <div className="divide-y divide-sandshadow/30">
       {notes.map((note) => (
@@ -84,15 +100,22 @@ export function PorchNotesList({ notes }: { notes: PorchNote[] }) {
           <Avatar initials={note.initials} />
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
-              <span className="font-semibold text-ink">{note.author}</span>
+              <span className="font-semibold text-ink">{note.posterName}</span>
               <span className="text-sm text-driftwood">{timeAgo(note.postedAt)}</span>
-              {note.stayId && (
-                <span className="rounded-full bg-sandshadow/25 px-2 py-0.5 text-[0.65rem] font-semibold text-driftwood">
-                  stay note
-                </span>
-              )}
+              <CategoryBadge category={note.category} />
             </div>
             <p className="mt-1 leading-relaxed text-ink-soft">{note.message}</p>
+            {note.imageUrl && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={note.imageUrl}
+                alt=""
+                className="mt-2 max-h-64 rounded-xl border border-sandshadow/40 object-cover"
+              />
+            )}
+            {showContact && note.contact && (
+              <p className="mt-1 text-xs font-semibold text-cedarwarm">Contact: {note.contact}</p>
+            )}
           </div>
         </div>
       ))}
