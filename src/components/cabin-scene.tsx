@@ -93,10 +93,36 @@ const SHORE_DRIFTWOOD = "#8c6948";
 const SHORE_SEAWEED = "#5d795e";
 const TREE_SHADOW = "#8d7658";
 
-/** Your placed Figma fir colours are kept exactly as designed. The only change
- *  for depth: outline-only firs get a solid fill — using a green from YOUR own
- *  palette chosen by depth (sage far → mid green → deep green near) — so the
- *  see-through firs stop breaking the layering. */
+/** Depth shading (atmospheric perspective) over your exact Figma layout: each
+ *  fir's placed opacity is read as a DISTANCE cue (fainter = further away).
+ *  Instead of rendering that as see-through "ghost" trees, distant firs are hazed
+ *  toward the sky and only gently faded, while near firs keep your exact colour
+ *  at full strength — so far trees recede and near ones stay solid. */
+const HAZE = "#bcd0d4"; // pale cool sky-sage the distance fades toward
+
+function mixHex(hex: string, target: string, t: number): string {
+  const n = (h: string, i: number) => parseInt(h.slice(i, i + 2), 16);
+  const a = [n(hex, 1), n(hex, 3), n(hex, 5)];
+  const b = [n(target, 1), n(target, 3), n(target, 5)];
+  return "#" + a.map((v, i) => Math.round(v + (b[i] - v) * t).toString(16).padStart(2, "0")).join("");
+}
+
+/** 0 for the nearest firs (opacity ≥ ~0.82) → 1 for the most distant (~0.16). */
+function distance(opacity: number): number {
+  return Math.min(1, Math.max(0, (0.82 - opacity) / 0.66));
+}
+/** Haze a fir's colour toward the sky by how far away it reads. */
+function depthColor(hex: string, opacity: number): string {
+  return mixHex(hex, HAZE, distance(opacity) * 0.55);
+}
+/** Floor opacity well above transparent so nothing reads as a ghost — the
+ *  recession is carried by the haze colour, not by see-through. */
+function depthOpacity(opacity: number): number {
+  return +(0.82 + 0.18 * Math.min(1, opacity)).toFixed(3);
+}
+
+/** Outline-only firs get a solid fill (a green from your palette by depth)
+ *  before the haze is applied on top. */
 function outlineFill(opacity: number): string {
   return opacity < 0.5 ? "#52745e" : opacity < 0.78 ? "#37613f" : "#2f5236";
 }
@@ -288,18 +314,21 @@ export function CabinScene({ className = "" }: { className?: string }) {
           designed; the only change is that outline-only firs are now filled (with
           a green from your palette, by depth) so the layering reads solid. Drawn
           faint-to-opaque so overlaps stack back-to-front. */}
-      {heroFirsByDepth.map(([x, b, h, w, op, fill, stroke], i) => (
-        <Fir
-          key={`fir-${i}`}
-          x={x}
-          baseY={b}
-          h={h}
-          w={w}
-          opacity={op}
-          fill={fill === "none" ? outlineFill(op) : fill}
-          stroke={stroke}
-        />
-      ))}
+      {heroFirsByDepth.map(([x, b, h, w, op, fill, stroke], i) => {
+        const base = fill === "none" ? outlineFill(op) : fill;
+        return (
+          <Fir
+            key={`fir-${i}`}
+            x={x}
+            baseY={b}
+            h={h}
+            w={w}
+            opacity={depthOpacity(op)}
+            fill={depthColor(base, op)}
+            stroke={depthColor(stroke, op)}
+          />
+        );
+      })}
 
       {/* stylized carved post beside the cabin (see Totem note above) */}
       <Totem />
@@ -312,17 +341,15 @@ export function CabinScene({ className = "" }: { className?: string }) {
         <path d="M560 97 L572 97 M566 97 L566 110" strokeWidth="1.3" />
       </g>
 
-      {/* The staircase as drawn in Figma: two short switchback landings just off
-          the cabin, then a straight run down to the shoreline. Path reconstructed
-          from the captured Figma stair geometry (box ~x593–641, y118–163). */}
+      {/* Switchback staircase down to the shoreline — the version that read best. */}
       <path
-        d="M593 118 L596 125 L607 127 L610 134 L620 136 L641 162"
-        stroke="#4a4744"
-        strokeWidth="2.3"
-        strokeDasharray="4 3"
+        d="M610 108 C606 117 611 125 619 130 C614 138 620 146 629 150 C625 157 637 163 645 169"
+        stroke="#46545c"
+        strokeWidth="2.4"
+        strokeDasharray="4.5 3.5"
         strokeLinejoin="round"
         strokeLinecap="round"
-        opacity="0.9"
+        opacity="0.86"
       />
 
       {/* a single eagle gliding across, once */}
