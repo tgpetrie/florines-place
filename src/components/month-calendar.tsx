@@ -1,4 +1,6 @@
 import type { CalendarEvent, CalendarStatus } from "@/lib/types";
+import Link from "next/link";
+import { addDays } from "@/lib/date-ranges";
 
 /**
  * A single month grid. Pure server component — takes precomputed mock events.
@@ -42,10 +44,12 @@ export function MonthCalendar({
   year,
   month, // 1-based
   dayMap,
+  requestableFrom,
 }: {
   year: number;
   month: number;
   dayMap: Map<string, CalendarEvent>;
+  requestableFrom?: string;
 }) {
   const first = new Date(year, month - 1, 1);
   const daysInMonth = new Date(year, month, 0).getDate();
@@ -62,7 +66,7 @@ export function MonthCalendar({
 
   return (
     <div className="card p-5 sm:p-6">
-      <h3 className="text-center text-xl text-night">{monthName}</h3>
+      <h3 className="text-center text-xl text-heading-strong">{monthName}</h3>
       <div className="mt-4 grid grid-cols-7 gap-1 text-center">
         {weekdays.map((d) => (
           <div key={d} className="pb-1 text-[0.68rem] font-bold uppercase tracking-wider text-driftwood">
@@ -71,16 +75,31 @@ export function MonthCalendar({
         ))}
         {cells.map((cell, i) => {
           if (!cell) return <div key={`blank-${i}`} />;
+          const iso = isoOf(year, month, cell.day);
           const tone = cell.event ? dayCellTones[cell.event.status] : "";
           const title = cell.event
             ? `${cell.event.label ?? cell.event.status} — ${cell.event.who}`
             : "Available";
+          if (!cell.event && requestableFrom && iso >= requestableFrom) {
+            return (
+              <Link
+                key={cell.day}
+                href={`/request?arrival=${iso}&departure=${addDays(iso, 2)}`}
+                title="Available — request these dates"
+                aria-label={`${monthName} ${cell.day}, available. Start a stay request.`}
+                className="flex aspect-square items-center justify-center rounded-lg border border-transparent text-sm font-bold text-ink-soft transition-colors hover:border-tide/45 hover:bg-seaglass/30 hover:text-heading-strong focus:outline-none focus:ring-2 focus:ring-tide"
+              >
+                {cell.day}
+              </Link>
+            );
+          }
+
           return (
             <div
               key={cell.day}
               title={title}
               className={`flex aspect-square items-center justify-center rounded-lg border text-sm font-bold ${
-                tone || "border-transparent text-ink-soft"
+                tone || "border-transparent text-driftwood/60"
               }`}
             >
               {cell.day}

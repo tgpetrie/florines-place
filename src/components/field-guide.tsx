@@ -62,7 +62,7 @@ function FamilyNotes({ notes }: { notes: string[] }) {
       {canAdd && (
         <button
           type="button"
-          className="text-xs font-bold text-navy underline underline-offset-2 hover:text-night"
+          className="text-link text-xs font-bold"
           onClick={() => mockAction("Add a family note")}
         >
           + Add a family note
@@ -106,7 +106,7 @@ export function PlaceCard({ place }: { place: LocalPlace }) {
     <article className="card flex flex-col p-5">
       <div className="flex items-start justify-between gap-2">
         <div>
-          <h3 className="text-lg leading-snug text-night">{place.name}</h3>
+          <h3 className="text-lg leading-snug text-heading-strong">{place.name}</h3>
           <p className="mt-0.5 text-xs font-bold uppercase tracking-wide text-driftwood">
             {place.category} · {place.distance}
           </p>
@@ -163,7 +163,7 @@ export function HarvestCard({ resource }: { resource: HarvestResource }) {
   return (
     <article className="card flex flex-col p-5">
       <div className="flex items-start justify-between gap-2">
-        <h3 className="text-lg leading-snug text-night">{resource.activity}</h3>
+        <h3 className="text-lg leading-snug text-heading-strong">{resource.activity}</h3>
         <HarvestBadge status={resource.status} />
       </div>
 
@@ -191,7 +191,7 @@ export function HarvestCard({ resource }: { resource: HarvestResource }) {
                 href={link.url}
                 target="_blank"
                 rel="noreferrer"
-                className="font-bold text-navy underline underline-offset-2 hover:text-night"
+                className="text-link font-bold"
               >
                 {link.label}
               </a>

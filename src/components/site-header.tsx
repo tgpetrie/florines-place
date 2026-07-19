@@ -66,7 +66,7 @@ export function SiteHeader() {
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
         <Link href="/" className="flex items-center gap-2" onClick={() => setMobileOpen(false)}>
           <Lantern className="h-7 w-6 text-cedarwarm" />
-          <span className="text-xl text-cedardark" style={{ fontFamily: "var(--font-display)" }}>
+          <span className="text-xl text-heading" style={{ fontFamily: "var(--font-display)" }}>
             Florine&rsquo;s Place
           </span>
         </Link>

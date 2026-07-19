@@ -16,6 +16,7 @@ import Link from "next/link";
 import { useRole } from "@/lib/role-context";
 import { SignalIcon } from "@/components/signal-icons";
 import { placeSignals } from "@/data/signals";
+import { APP_MODE } from "@/lib/app-mode";
 import { canSee, fullDate } from "@/lib/selectors";
 import type { PlaceSignal, SignalCategory, SignalSeverity } from "@/lib/types";
 
@@ -36,7 +37,7 @@ const homeCategoryPriority: Partial<Record<SignalCategory, number>> = {
 
 function useVisibleSignals(): PlaceSignal[] {
   const { role } = useRole();
-  return placeSignals.filter((s) => canSee(role, s.visibility));
+  return (APP_MODE === "demo" ? placeSignals : []).filter((s) => canSee(role, s.visibility));
 }
 
 const officialCheckCategories: SignalCategory[] = ["crabbing", "shellfish", "fishing", "fire"];
@@ -62,7 +63,7 @@ export function PlaceSignalsHome() {
 
   return (
     <section className="mx-auto max-w-5xl px-4 pt-12 sm:px-6">
-      <h2 className="text-xl text-cedardark">What&rsquo;s happening around the cabin</h2>
+      <h2 className="text-xl text-heading">What&rsquo;s happening around the cabin</h2>
       {signals.length === 0 ? (
         <p className="mt-3 font-hand text-lg text-driftwood">Nothing special to flag right now.</p>
       ) : (
@@ -84,7 +85,7 @@ export function PlaceSignalsHome() {
                     {s.linkHref && (
                       <Link
                         href={s.linkHref}
-                        className="text-xs font-semibold text-cedarwarm underline underline-offset-2 hover:text-cedardark"
+                        className="text-link text-xs font-semibold"
                       >
                         {s.linkText ?? "More"} →
                       </Link>
@@ -118,7 +119,7 @@ export function PlaceSignalsDetailed() {
               </span>
               <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                  <h3 className="text-base text-ink">{s.title}</h3>
+                  <h3 className="text-base text-heading-strong">{s.title}</h3>
                   <span className={`text-[0.68rem] font-semibold uppercase tracking-wide ${tone.icon}`}>
                     {s.isActive ? s.severity : "seasonal"}
                   </span>
@@ -136,7 +137,7 @@ export function PlaceSignalsDetailed() {
                   {s.linkHref && (
                     <Link
                       href={s.linkHref}
-                      className="text-sm font-semibold text-cedarwarm underline underline-offset-2 hover:text-cedardark"
+                      className="text-link text-sm font-semibold"
                     >
                       {s.linkText ?? "More"} →
                     </Link>
@@ -146,7 +147,7 @@ export function PlaceSignalsDetailed() {
                       href={s.sourceUrl}
                       target="_blank"
                       rel="noreferrer"
-                      className="text-sm font-semibold text-canaldeep underline underline-offset-2 hover:text-cedardark"
+                      className="text-link text-sm font-semibold"
                     >
                       Official source →
                     </a>

@@ -13,6 +13,7 @@
 
 import Link from "next/link";
 import { porchNotes } from "@/data/messages";
+import { APP_MODE } from "@/lib/app-mode";
 
 function timeAgo(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime();
@@ -37,15 +38,15 @@ function Avatar({ initials }: { initials: string }) {
 // --- Homepage preview -------------------------------------------------------
 
 export function PorchNotesPreview() {
-  const recent = porchNotes.slice(0, 3);
+  const recent = (APP_MODE === "demo" ? porchNotes : []).slice(0, 3);
 
   return (
     <section className="mx-auto max-w-5xl px-4 pt-12 sm:px-6">
       <div className="flex items-baseline justify-between gap-4">
-        <h2 className="text-xl text-cedardark">Porch Notes</h2>
+        <h2 className="text-xl text-heading">Porch Notes</h2>
         <Link
           href="/dashboard#porch-notes"
-          className="text-sm font-semibold text-cedarwarm underline underline-offset-2 hover:text-cedardark"
+          className="text-link text-sm font-semibold"
         >
           All notes →
         </Link>
@@ -81,15 +82,16 @@ export function PorchNotesPreview() {
 // --- Full list (for dashboard) -----------------------------------------------
 
 export function PorchNotesFull() {
+  const notes = APP_MODE === "demo" ? porchNotes : [];
   return (
     <div id="porch-notes" className="scroll-mt-24">
       <div className="flex items-baseline justify-between">
-        <h2 className="text-2xl text-cedardark">Porch Notes</h2>
+        <h2 className="text-2xl text-heading">Porch Notes</h2>
         <span className="text-sm text-driftwood">Family cabin conversation</span>
       </div>
 
       <div className="mt-4 divide-y divide-sandshadow/30 rounded-2xl border border-sandshadow/40 bg-oystercard">
-        {porchNotes.map((note) => (
+        {notes.map((note) => (
           <div key={note.id} className="flex items-start gap-3 px-5 py-4">
             <Avatar initials={note.initials} />
             <div className="min-w-0 flex-1">
@@ -106,6 +108,10 @@ export function PorchNotesFull() {
             </div>
           </div>
         ))}
+
+        {notes.length === 0 && (
+          <p className="px-5 py-6 text-center text-sm text-driftwood">No live porch notes yet.</p>
+        )}
 
         {/* Placeholder write area */}
         <div className="px-5 py-4">

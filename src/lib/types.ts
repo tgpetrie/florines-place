@@ -40,6 +40,20 @@ export interface StayRequest {
   submitted: string; // ISO date
 }
 
+export interface StayRequestInput {
+  name: string;
+  contact: string;
+  arrival: string;
+  departure: string;
+  guestCount: number;
+  party: string;
+  pets: string;
+  note: string;
+  specialCircumstances: string;
+  feeAcknowledged: boolean;
+  guideAcknowledged: boolean;
+}
+
 // --- Calendar ---------------------------------------------------------------
 
 export type CalendarStatus =
@@ -211,7 +225,6 @@ export interface EmergencyItem {
 /** Private emergency card. Never rendered on public pages. */
 export interface EmergencyInfo {
   visibility: Visibility;
-  address: string;
   responderNote: string;
   items: EmergencyItem[];
   lastVerified: string;

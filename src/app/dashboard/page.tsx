@@ -10,16 +10,19 @@
  */
 
 import Link from "next/link";
+import { useCallback, useEffect, useState } from "react";
 import { useRole } from "@/lib/role-context";
 import { PageHeader } from "@/components/page-header";
 import { CalendarBadge, FeeBadge, SupplyBadge, IdeaBadge, Badge } from "@/components/status-badge";
 import { PorchNotesFull } from "@/components/porch-notes";
-import { stayRequests } from "@/data/stay-requests";
-import { calendarEvents, familyPlans } from "@/data/calendar";
+import { familyPlans as demoFamilyPlans } from "@/data/calendar";
 import { supplyItems } from "@/data/supplies";
 import { ideas } from "@/data/ideas";
 import { guestbookEntries } from "@/data/guestbook";
 import { dateRange, shortDate } from "@/lib/selectors";
+import { APP_MODE } from "@/lib/app-mode";
+import { loadDemoStayRequests, loadReservations } from "@/lib/reservations-client";
+import type { CalendarEvent, StayRequest } from "@/lib/types";
 
 function mockAction(label: string) {
   // Placeholder: real mutations arrive with Supabase.
@@ -34,7 +37,7 @@ const adminBtn =
 function Section({ title, children, id }: { title: string; children: React.ReactNode; id?: string }) {
   return (
     <section id={id} className="card scroll-mt-24 p-6">
-      <h2 className="text-xl text-night">{title}</h2>
+      <h2 className="text-xl text-heading">{title}</h2>
       <div className="mt-4">{children}</div>
     </section>
   );
@@ -43,10 +46,34 @@ function Section({ title, children, id }: { title: string; children: React.React
 export default function DashboardPage() {
   const { role } = useRole();
   const isAdmin = role === "admin";
+  const [reservationRequests, setReservationRequests] = useState<StayRequest[]>([]);
+  const [reservationEvents, setReservationEvents] = useState<CalendarEvent[]>([]);
+
+  const refreshReservations = useCallback(async () => {
+    if (APP_MODE === "demo") setReservationRequests(loadDemoStayRequests());
+    try {
+      const snapshot = await loadReservations();
+      setReservationEvents(snapshot.events);
+    } catch {
+      setReservationEvents([]);
+    }
+  }, []);
+
+  useEffect(() => {
+    void refreshReservations();
+    window.addEventListener("florines:reservations-changed", refreshReservations);
+    window.addEventListener("storage", refreshReservations);
+    return () => {
+      window.removeEventListener("florines:reservations-changed", refreshReservations);
+      window.removeEventListener("storage", refreshReservations);
+    };
+  }, [refreshReservations]);
+
+  const familyPlans = APP_MODE === "demo" ? demoFamilyPlans : [];
 
   // Guests see a gentle door, plus their own request status.
   if (role === "guest") {
-    const myRequest = stayRequests.find((r) => r.name === "The Hendersons");
+    const myRequest = reservationRequests[0];
     return (
       <div className="pb-8">
         <PageHeader
@@ -82,16 +109,16 @@ export default function DashboardPage() {
     );
   }
 
-  const pending = stayRequests.filter((r) => r.status === "pending");
-  const approved = stayRequests.filter((r) => r.status === "approved");
-  const recentSupplies = [...supplyItems]
+  const pending = reservationRequests.filter((r) => r.status === "pending");
+  const approved = reservationRequests.filter((r) => r.status === "approved");
+  const recentSupplies = [...(APP_MODE === "demo" ? supplyItems : [])]
     .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
     .slice(0, 4);
-  const activeIdeas = ideas
+  const activeIdeas = (APP_MODE === "demo" ? ideas : [])
     .filter((i) => i.status !== "Done" && i.status !== "Not Now")
     .slice(0, 4);
-  const maintenance = calendarEvents.filter((e) => e.status === "maintenance");
-  const recentEntries = guestbookEntries.filter(
+  const maintenance = reservationEvents.filter((e) => e.status === "maintenance");
+  const recentEntries = (APP_MODE === "demo" ? guestbookEntries : []).filter(
     (e) => e.visibility === "family" || isAdmin,
   ).slice(0, 2);
 
@@ -127,10 +154,15 @@ export default function DashboardPage() {
         {/* Pending requests — full width */}
         <section id="requests" className="card scroll-mt-24 p-6 lg:col-span-2">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl text-night">Pending stay requests</h2>
+            <h2 className="text-xl text-heading">Pending stay requests</h2>
             <Badge tone="sand">{pending.length} waiting</Badge>
           </div>
           <div className="mt-4 space-y-4">
+            {pending.length === 0 && (
+              <p className="rounded-xl bg-oyster/60 px-4 py-5 text-center text-sm text-driftwood">
+                No pending stay requests.
+              </p>
+            )}
             {pending.map((req) => (
               <div key={req.id} className="rounded-xl border border-sand-deep/50 bg-oyster/60 p-5">
                 <div className="flex flex-wrap items-baseline justify-between gap-2">
@@ -179,6 +211,7 @@ export default function DashboardPage() {
         {/* Upcoming approved stays + fee status */}
         <Section title="Upcoming Approved Stays">
           <ul className="space-y-3">
+            {approved.length === 0 && <li className="text-sm text-driftwood">No approved request records yet.</li>}
             {approved.map((req) => (
               <li key={req.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-oyster/60 px-4 py-3">
                 <div>
@@ -200,6 +233,7 @@ export default function DashboardPage() {
         {/* Family considering */}
         <Section title="Family considering">
           <ul className="space-y-3">
+            {familyPlans.length === 0 && <li className="text-sm text-driftwood">No softer plans yet.</li>}
             {familyPlans.map((plan) => (
               <li key={plan.id} className="rounded-lg bg-oyster/60 px-4 py-3">
                 <div className="flex flex-wrap items-center justify-between gap-2">
@@ -220,6 +254,7 @@ export default function DashboardPage() {
         {/* Supply updates */}
         <Section title="Recent supply updates">
           <ul className="space-y-3">
+            {recentSupplies.length === 0 && <li className="text-sm text-driftwood">No live supply updates yet.</li>}
             {recentSupplies.map((item) => (
               <li key={item.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-oyster/60 px-4 py-3">
                 <div>
@@ -232,7 +267,7 @@ export default function DashboardPage() {
               </li>
             ))}
           </ul>
-          <Link href="/supplies" className="mt-4 inline-block text-sm font-bold text-navy underline underline-offset-2">
+          <Link href="/supplies" className="text-link mt-4 inline-block text-sm font-bold">
             Open the pantry board →
           </Link>
         </Section>
@@ -240,6 +275,7 @@ export default function DashboardPage() {
         {/* Ideas & improvements */}
         <Section title="Ideas &amp; improvements">
           <ul className="space-y-3">
+            {activeIdeas.length === 0 && <li className="text-sm text-driftwood">No live ideas yet.</li>}
             {activeIdeas.map((idea) => (
               <li key={idea.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg bg-oyster/60 px-4 py-3">
                 <div>
@@ -250,7 +286,7 @@ export default function DashboardPage() {
               </li>
             ))}
           </ul>
-          <Link href="/ideas" className="mt-4 inline-block text-sm font-bold text-navy underline underline-offset-2">
+          <Link href="/ideas" className="text-link mt-4 inline-block text-sm font-bold">
             Open the ideas board →
           </Link>
         </Section>
@@ -266,10 +302,11 @@ export default function DashboardPage() {
                 </span>
               </li>
             ))}
-            <li className="rounded-lg bg-oyster/60 px-4 py-3 text-sm text-ink">
+            {APP_MODE === "demo" && <li className="rounded-lg bg-oyster/60 px-4 py-3 text-sm text-ink">
               <span className="font-bold">Ongoing</span> — shower re-caulk in progress; propane level unknown
               (flagged in Supplies).
-            </li>
+            </li>}
+            {maintenance.length === 0 && <li className="text-sm text-driftwood">No live maintenance notes yet.</li>}
           </ul>
         </Section>
 
@@ -281,6 +318,7 @@ export default function DashboardPage() {
         {/* Guestbook */}
         <Section id="guestbook" title="Recent guestbook entries">
           <ul className="space-y-3">
+            {recentEntries.length === 0 && <li className="text-sm text-driftwood">No live guestbook entries yet.</li>}
             {recentEntries.map((entry) => (
               <li key={entry.id} className="rounded-lg bg-oyster/60 px-4 py-3">
                 <div className="flex items-baseline justify-between gap-2">
@@ -291,7 +329,7 @@ export default function DashboardPage() {
               </li>
             ))}
           </ul>
-          <Link href="/guestbook" className="mt-4 inline-block text-sm font-bold text-navy underline underline-offset-2">
+          <Link href="/guestbook" className="text-link mt-4 inline-block text-sm font-bold">
             Read the guestbook →
           </Link>
         </Section>

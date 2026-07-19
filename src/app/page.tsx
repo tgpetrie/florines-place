@@ -11,6 +11,7 @@ import { PlaceSignalsHome } from "@/components/place-signals";
 import { PorchNotesPreview } from "@/components/porch-notes";
 import { weatherNow, tideEvents, tenDayOutlook, MOCK_TODAY } from "@/data/conditions";
 import { nextTide } from "@/lib/selectors";
+import { APP_MODE } from "@/lib/app-mode";
 
 const NOW_MINUTES = 9 * 60;
 
@@ -83,9 +84,9 @@ export default function HomePage() {
       </section>
 
       {/* ── 3. Today at Florine's Place ───────────────────────────────────── */}
-      <section className="mx-auto max-w-5xl px-4 pt-12 sm:px-6">
+      {APP_MODE === "demo" ? <section className="mx-auto max-w-5xl px-4 pt-12 sm:px-6">
         <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-          <h2 className="text-2xl text-cedardark">Today at Florine&rsquo;s Place</h2>
+          <h2 className="text-2xl text-heading">Today at Florine&rsquo;s Place</h2>
           <p className="metadata">Mock data · live weather &amp; tides planned</p>
         </div>
 
@@ -119,7 +120,7 @@ export default function HomePage() {
             {/* Weather */}
             <div className="rounded-2xl bg-wetsand/30 p-6 lg:col-span-2">
               <p className="label">Weather</p>
-              <p className="tnum mt-2 text-4xl font-semibold text-cedardark">{weatherNow.tempF}°</p>
+              <p className="tnum mt-2 text-4xl font-semibold text-heading-strong">{weatherNow.tempF}°</p>
               <p className="mt-1 text-ink">{weatherNow.condition}</p>
               <dl className="mt-4 space-y-1.5 text-sm text-ink-soft">
                 <div className="flex justify-between gap-3">
@@ -160,7 +161,15 @@ export default function HomePage() {
             )}
           </div>
         </div>
-      </section>
+      </section> : (
+        <section className="mx-auto max-w-5xl px-4 pt-12 sm:px-6">
+          <h2 className="text-2xl text-heading">Today at Florine&rsquo;s Place</h2>
+          <div className="card mt-4 p-8 text-center">
+            <p className="text-lg font-bold text-heading-strong">Live weather and tides are not connected yet.</p>
+            <p className="mt-2 text-sm text-ink-soft">The live build does not substitute sample conditions.</p>
+          </div>
+        </section>
+      )}
 
       {/* ── 4. Place Signals ─────────────────────────────────────────────── */}
       <PlaceSignalsHome />
@@ -169,16 +178,16 @@ export default function HomePage() {
       <PorchNotesPreview />
 
       {/* ── 6. Next few days ─────────────────────────────────────────────── */}
-      <section className="mx-auto max-w-5xl px-4 pt-12 sm:px-6">
-        <h2 className="text-xl text-cedardark">The next few days</h2>
+      {APP_MODE === "demo" && <section className="mx-auto max-w-5xl px-4 pt-12 sm:px-6">
+        <h2 className="text-xl text-heading">The next few days</h2>
         <div className="mt-3 rounded-2xl border border-sandshadow/40 bg-oyster/40 p-4 sm:p-5">
           <ForecastPreview days={tenDayOutlook} />
         </div>
-      </section>
+      </section>}
 
       {/* ── 7. Quick actions ─────────────────────────────────────────────── */}
       <section className="mx-auto max-w-5xl px-4 pt-12 sm:px-6">
-        <h2 className="text-xl text-cedardark">Quick actions</h2>
+        <h2 className="text-xl text-heading">Quick actions</h2>
         <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {quickActions.map((a) => (
             <Link
@@ -189,7 +198,7 @@ export default function HomePage() {
               <span className="text-cedarwarm">
                 <GuideIcon name={a.icon} className="h-6 w-6" />
               </span>
-              <span className="text-sm font-semibold text-cedardark">{a.label}</span>
+              <span className="text-sm font-semibold text-heading-strong">{a.label}</span>
             </Link>
           ))}
         </div>
@@ -198,7 +207,7 @@ export default function HomePage() {
       {/* ── 8. Closing note ──────────────────────────────────────────────── */}
       <section className="mx-auto max-w-5xl px-4 pt-12 pb-4 sm:px-6">
         <div className="rounded-2xl bg-wetsand/40 p-8 text-center">
-          <h3 className="text-xl text-cedardark">A Shared Family Place</h3>
+          <h3 className="text-xl text-heading-strong">A Shared Family Place</h3>
           <p className="mx-auto mt-3 max-w-2xl leading-relaxed text-ink-soft">
             This place works because everyone respects the cabin, the neighbors,
             the people arriving next, and the time it takes to keep it peaceful.

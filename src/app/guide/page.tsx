@@ -17,6 +17,7 @@ import { useState } from "react";
 import { useRole } from "@/lib/role-context";
 import { GuideIcon } from "@/components/guide-icons";
 import { PlaceSignalsDetailed } from "@/components/place-signals";
+import { PrivateDirections } from "@/components/private-directions";
 import {
   contactsPrivacyNote,
   emergencyInfo,
@@ -27,6 +28,7 @@ import {
 import { supplyItems } from "@/data/supplies";
 import { beforeYouGoItems, canSee, fullDate } from "@/lib/selectors";
 import type { GuideTopic } from "@/lib/types";
+import { APP_MODE } from "@/lib/app-mode";
 
 function mockAction(label: string) {
   window.alert(`"${label}" is a placeholder — real guide editing arrives with the backend.`);
@@ -51,7 +53,7 @@ function Checklist({ items }: { items: string[] }) {
     <ul className="space-y-2">
       {items.map((item, i) => (
         <li key={i} className="flex items-start gap-3 rounded-lg bg-oyster/70 px-4 py-2.5">
-          <input type="checkbox" className="mt-0.5 h-5 w-5 shrink-0 accent-[#22334e]" aria-label={`Done: ${item}`} />
+          <input type="checkbox" className="mt-0.5 h-5 w-5 shrink-0 accent-navy" aria-label={`Done: ${item}`} />
           <span className="text-ink">{item}</span>
         </li>
       ))}
@@ -141,7 +143,7 @@ function TopicBody({ topic }: { topic: GuideTopic }) {
 
       {topic.checklistGroups?.map((group) => (
         <div key={group.title} className="mt-5">
-          <h4 className="text-lg text-night">{group.title}</h4>
+          <h4 className="text-lg text-heading-strong">{group.title}</h4>
           <div className="mt-2">
             <Checklist items={group.items} />
           </div>
@@ -202,9 +204,10 @@ export default function GuidePage() {
   }
 
   // --- Supplies glance ---
-  const outCount = supplyItems.filter((s) => s.status === "Out" || s.status === "Need to Buy").length;
-  const lowCount = supplyItems.filter((s) => s.status === "Running Low").length;
-  const bringCount = beforeYouGoItems(supplyItems).length;
+  const inventory = APP_MODE === "demo" ? supplyItems : [];
+  const outCount = inventory.filter((s) => s.status === "Out" || s.status === "Need to Buy").length;
+  const lowCount = inventory.filter((s) => s.status === "Running Low").length;
+  const bringCount = beforeYouGoItems(inventory).length;
 
   // Accordion header + body wrapper
   function Accordion({
@@ -232,7 +235,7 @@ export default function GuidePage() {
             className="flex w-full items-center gap-3 py-4 text-left"
           >
             <span className="text-cedar/80">{icon}</span>
-            <span className="flex-1 text-lg font-bold text-night" style={{ fontFamily: "var(--font-display)" }}>
+            <span className="flex-1 text-lg font-bold text-heading-strong" style={{ fontFamily: "var(--font-display)" }}>
               {title}
             </span>
             {tags}
@@ -259,7 +262,7 @@ export default function GuidePage() {
     <div className="pb-8">
       {/* Simple, calm header — no eyebrow, no quote card */}
       <header className="mx-auto max-w-3xl px-6 pt-14 pb-8 text-center sm:pt-20">
-        <h1 className="text-4xl text-night sm:text-5xl">Cabin Guide</h1>
+        <h1 className="text-4xl text-heading sm:text-5xl">Cabin Guide</h1>
         <p className="mx-auto mt-4 max-w-xl text-lg leading-relaxed text-ink-soft">
           The few things to check when you arrive, before you leave, and when the
           cabin needs care.
@@ -273,7 +276,7 @@ export default function GuidePage() {
           <section className="card p-6">
             <div className="flex items-center gap-2.5">
               <span className="text-cedar"><GuideIcon name="lantern" className="h-6 w-6" /></span>
-              <h2 className="text-xl text-night">Arriving</h2>
+              <h2 className="text-xl text-heading">Arriving</h2>
             </div>
             <GlanceList
               items={[
@@ -285,9 +288,10 @@ export default function GuidePage() {
                 "Note: motion-sensor faucet — double-check it stops",
               ]}
             />
+            <PrivateDirections className="mt-5" />
             <button
               type="button"
-              className="mt-4 text-sm font-bold text-navy underline underline-offset-2 hover:text-night"
+              className="text-link mt-4 text-sm font-bold"
               onClick={() => openAndScroll("arrival")}
             >
               View arrival details →
@@ -298,7 +302,7 @@ export default function GuidePage() {
           <section className="card p-6">
             <div className="flex items-center gap-2.5">
               <span className="text-cedar"><GuideIcon name="shore" className="h-6 w-6" /></span>
-              <h2 className="text-xl text-night">Before You Leave</h2>
+              <h2 className="text-xl text-heading">Before You Leave</h2>
             </div>
             <GlanceList
               items={[
@@ -313,7 +317,7 @@ export default function GuidePage() {
             />
             <button
               type="button"
-              className="mt-4 text-sm font-bold text-navy underline underline-offset-2 hover:text-night"
+              className="text-link mt-4 text-sm font-bold"
               onClick={() => openAndScroll("departure")}
             >
               View full departure checklist →
@@ -324,7 +328,7 @@ export default function GuidePage() {
           <section className="card p-6">
             <div className="flex items-center gap-2.5">
               <span className="text-rust"><GuideIcon name="emergency" className="h-6 w-6" /></span>
-              <h2 className="text-xl text-night">If Something Breaks</h2>
+              <h2 className="text-xl text-heading">If Something Breaks</h2>
             </div>
             <p className="mt-3 text-sm leading-relaxed text-ink-soft">{guidePrinciple}</p>
             <div className="mt-4 flex flex-wrap gap-2">
@@ -358,7 +362,7 @@ export default function GuidePage() {
           <section className="card p-6">
             <div className="flex items-center gap-2.5">
               <span className="text-cedar"><GuideIcon name="supplies" className="h-6 w-6" /></span>
-              <h2 className="text-xl text-night">Supplies &amp; Restocking</h2>
+              <h2 className="text-xl text-heading">Supplies &amp; Restocking</h2>
             </div>
             <div className="mt-3 flex flex-wrap gap-2 text-sm">
               <span className="rounded-full bg-rust/12 px-3 py-1 font-bold text-rust">{outCount} out or needed</span>
@@ -370,7 +374,7 @@ export default function GuidePage() {
             </p>
             <Link
               href="/supplies"
-              className="mt-4 inline-block text-sm font-bold text-navy underline underline-offset-2 hover:text-night"
+              className="text-link mt-4 inline-block text-sm font-bold"
             >
               Open the Supplies page →
             </Link>
@@ -380,7 +384,7 @@ export default function GuidePage() {
         {/* Place Signals — seasonal / situational field notes with sources */}
         <section className="mt-14">
           <div className="flex items-baseline justify-between">
-            <h2 className="text-2xl text-night">Place Signals</h2>
+            <h2 className="text-2xl text-heading">Place Signals</h2>
             <span className="text-sm text-driftwood">What&rsquo;s happening around the cabin</span>
           </div>
           <p className="metadata mt-1 mb-4">
@@ -392,7 +396,7 @@ export default function GuidePage() {
         {/* Full Guide — accordions, closed by default except the open one */}
         <section className="mt-14">
           <div className="flex items-baseline justify-between">
-            <h2 className="text-2xl text-night">Full Guide</h2>
+            <h2 className="text-2xl text-heading">Full Guide</h2>
             <span className="text-sm text-driftwood">Open a section when you need it</span>
           </div>
 
@@ -430,11 +434,11 @@ export default function GuidePage() {
                         <span className="text-[0.68rem] font-bold uppercase tracking-wide text-rust">Private</span>
                       }
                     >
-                      <div className="rounded-xl bg-rust/10 p-5 text-center">
-                        <p className="eyebrow !text-rust/80">The cabin&rsquo;s address</p>
-                        <p className="mt-1 text-xl font-bold text-night">{emergencyInfo.address}</p>
+                      <div className="rounded-xl bg-rust/10 p-5">
+                        <p className="eyebrow !text-rust/80">Emergency location</p>
                         <p className="mt-2 text-sm leading-relaxed text-ink-soft">{emergencyInfo.responderNote}</p>
                       </div>
+                      <PrivateDirections className="mt-4" />
                       <dl className="mt-4 space-y-2">
                         {emergencyInfo.items.map((item) => (
                           <div key={item.label} className="flex flex-wrap items-baseline gap-x-3 gap-y-1 rounded-lg bg-oyster/70 px-4 py-2.5">

@@ -6,10 +6,10 @@
  * Florine's Place. Anything that may have changed since 2020 carries
  * `needsVerification: true` and a 2020-era lastVerified date.
  *
- * PRIVACY: the cabin address lives only in `emergencyInfo`
- * (visibility: approved_guest). The letter's personal phone numbers and
- * email addresses are NOT reproduced here — contacts are masked placeholders
- * until real auth protects them (see FamilyContact in types.ts).
+ * PRIVACY: the cabin address, directions passcode, and approval email
+ * addresses are server-only environment values. They are never reproduced in
+ * this client data file. Family contacts remain masked placeholders until real
+ * auth protects them (see FamilyContact in types.ts).
  *
  * BACKEND NOTE: becomes admin-editable `guide_topics`, `emergency_info`, and
  * `family_contacts` tables with row-level security per `visibility`.
@@ -53,7 +53,7 @@ export const guideTopics: GuideTopic[] = [
       },
     ],
     notes: [
-      "The cabin's street address is on the private Emergency Info card at the bottom of this page — worth reading once when you arrive.",
+      "Private directions are available through the access gate in the Arriving card and Emergency Info section.",
     ],
     lastVerified: "2020-05-01",
     needsVerification: true,
@@ -350,10 +350,11 @@ export const guideTopics: GuideTopic[] = [
     icon: "shore",
     visibility: "public",
     body: [
-      "Two cars fit in the gravel pull-in; a third can go along the fence. Please keep the neighbors' driveway completely clear.",
+      "Two cars fit easily in the main gravel parking strip, with room for up to two more depending on how you arrange them.",
+      "There's also a small offshoot toward the outhouse where another car or two can tuck in.",
     ],
-    needsVerification: true,
-    sourceNote: "Family placeholder — not from the 2020 letter; confirm details.",
+    lastVerified: "2026-07-18",
+    sourceNote: "Confirmed by the family.",
   },
   {
     id: "neighbors",
@@ -396,9 +397,8 @@ export const guideTopics: GuideTopic[] = [
 
 export const emergencyInfo: EmergencyInfo = {
   visibility: "approved_guest",
-  address: "36411 Hood Canal Drive NE, Hansville, WA 98340",
   responderNote:
-    "In an emergency call 911 first and give responders this address. Then call the family — any of them, any hour.",
+    "In an emergency call 911 first, then use the private directions gate for the cabin location and contact the family — any of them, any hour.",
   items: [
     { label: "Water shutoff", value: "Valve behind the dryer, SE corner of the basement laundry room" },
     { label: "Pump shutoff", value: "Breaker box on the left wall of the pump house, up the driveway spur" },
@@ -409,7 +409,7 @@ export const emergencyInfo: EmergencyInfo = {
     { label: "Nearest hospital", value: "St. Michael Medical Center, Bremerton (placeholder — verify drive time from Hansville)", needsVerification: true },
   ],
   lastVerified: "2020-05-01",
-  sourceNote: "Address from the May 2020 letter. Shutoffs from its water/heating instructions.",
+  sourceNote: "Private address is stored server-side. Shutoffs are from the May 2020 water/heating instructions.",
 };
 
 // --- Family contacts (family/admin only, masked) -----------------------------------

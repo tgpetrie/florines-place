@@ -7,32 +7,48 @@
 --------------------------------------------------------------------------- */
 
 @theme {
-  /* Palette */
-  --color-night: #131f31; /* moonlit navy, deepest */
-  --color-navy: #22334e; /* moonlit navy */
-  --color-tide: #3c5470; /* water at dusk */
-  --color-moon: #e9edf3; /* moonlight on water */
-  --color-oyster: #f6f2e9; /* oyster shell white — page background */
-  --color-shell: #fdfbf5; /* inner shell — card background */
-  --color-sand: #e7dcc6; /* wet sand beige */
-  --color-sand-deep: #d5c5a5;
-  --color-cedar: #6d4a33; /* cedar brown */
-  --color-rust: #b0522c; /* crab shell rust */
-  --color-seaweed: #47664f; /* seaweed green */
-  --color-pearl: #c8ccd2; /* pearl gray */
-  --color-driftwood: #8b8378; /* driftwood gray */
-  --color-ink: #2e2921; /* warm near-black for text */
-  --color-ink-soft: #5c5548; /* softened text */
+  /* Core palette and hierarchy.
+     Warm sand owns the canvas; Hood Canal blues and tidal teals carry UI
+     hierarchy; cedar/rust remain sparing, place-specific accents. */
+  --color-night: #102f3d; /* deepest harbor blue */
+  --color-navy: #16485a; /* primary action / strongest UI blue */
+  --color-tide: #356f7c; /* secondary action blue-teal */
+  --color-canal: #648f96; /* supporting Hood Canal blue-gray */
+  --color-canaldeep: #255d6f; /* active navigation / emphasis */
+  --color-seaweed: #30736c; /* success and organic teal accent */
+  --color-seaglass: #b9d6d1; /* tertiary fills and quiet highlights */
+  --color-foam: #e7f3f0; /* palest cool surface */
+  --color-moon: #eaf5f3; /* moonlight on water */
 
-  /* Warm middle-tone palette — added for the Home visual reset.
-     Additive on purpose: existing tokens above are left untouched so the
-     other pages keep their look. */
-  --color-oystercard: #fff9ee; /* primary warm card */
-  --color-wetsand: #d8c7ad; /* larger soft panels / warm surfaces */
-  --color-sandshadow: #b9a68d; /* warm borders */
-  --color-canal: #607c88; /* Hood Canal blue-gray — tide/weather emphasis */
-  --color-canaldeep: #324f5d; /* deeper calm emphasis */
-  --color-cedarwarm: #8a5a36; /* warm cedar — buttons, links, dividers */
+  --color-oyster: #ffefe0; /* warm creamy sand — global page background */
+  --color-shell: #fffaf5; /* inner shell — card background */
+  --color-sand: #efd6bf; /* soft dry sand */
+  --color-sand-deep: #d7b493;
+  --color-cedar: #6d4a33; /* cedar brown */
+  --color-rust: #b45d3b; /* crab shell rust — warning / warm accent */
+  --color-pearl: #c8d6d8; /* cool pearl gray */
+  --color-driftwood: #817368; /* driftwood gray */
+  --color-ink: #302820; /* warm near-black for text */
+  --color-ink-soft: #65574c; /* softened text */
+
+  /* Semantic color roles — components should choose these names instead of
+     picking a landscape pigment directly. The heading role deliberately uses
+     the exact blue from the current-tide card. */
+  --color-heading: #255d6f; /* page + section titles */
+  --color-heading-strong: #16485a; /* card titles + prominent values */
+  --color-copy: #302820; /* primary reading text */
+  --color-copy-muted: #65574c; /* supporting copy */
+  --color-link: #356f7c; /* ordinary interactive text */
+  --color-link-hover: #102f3d; /* interactive emphasis */
+  --color-positive: #30736c; /* confirmations / approved states only */
+  --color-caution: #b45d3b; /* warnings / official-check states only */
+
+  /* Warm material palette. These remain available for surfaces and cabin
+     motifs; text hierarchy should use the semantic roles above. */
+  --color-oystercard: #fff8ef; /* primary warm card */
+  --color-wetsand: #e2c5aa; /* larger soft panels / warm surfaces */
+  --color-sandshadow: #c3a181; /* warm borders */
+  --color-cedarwarm: #95613e; /* warm cedar — cabin-specific accent */
   --color-cedardark: #5f3a24; /* carved-sign brown */
 
   /* Type — two families only.
@@ -69,18 +85,23 @@
    Base
 --------------------------------------------------------------------------- */
 
+html {
+  background-color: var(--color-oyster);
+}
+
 body {
   background-color: var(--color-oyster);
   color: var(--color-ink);
   font-family: var(--font-body);
-  /* faint tide-line texture: three soft horizontal ripples */
-  background-image: repeating-linear-gradient(
-    180deg,
-    transparent 0px,
-    transparent 138px,
-    color-mix(in srgb, var(--color-sand) 26%, transparent) 139px,
-    transparent 141px
-  );
+  /* Almost-imperceptible sand grain: two irregular micro-speckle layers plus
+     a soft shell highlight. Kept fixed so it reads as material, not pattern. */
+  background-image:
+    radial-gradient(circle, rgb(109 74 51 / 0.035) 0 0.55px, transparent 0.75px),
+    radial-gradient(circle, rgb(37 93 111 / 0.022) 0 0.45px, transparent 0.7px),
+    linear-gradient(180deg, rgb(255 255 255 / 0.14), transparent 24rem);
+  background-position: 0 0, 9px 13px, 0 0;
+  background-size: 19px 19px, 29px 29px, 100% 100%;
+  background-attachment: fixed;
 }
 
 /* Page + section titles: display serif. Card + sub headings: UI sans. */
@@ -98,6 +119,20 @@ h4 {
   font-weight: var(--font-weight-semibold);
   letter-spacing: -0.005em;
   line-height: var(--line-height-tight);
+}
+
+/* Automatic semantic defaults live in the base layer so contextual color
+   utilities (for example the light hero title) can override them. */
+@layer base {
+  h1,
+  h2 {
+    color: var(--color-heading);
+  }
+
+  h3,
+  h4 {
+    color: var(--color-heading-strong);
+  }
 }
 
 ::selection {
@@ -135,19 +170,44 @@ h4 {
   .btn-primary {
     background: var(--color-navy);
     color: var(--color-moon);
-    box-shadow: 0 2px 10px rgb(19 31 49 / 0.25);
+    box-shadow: 0 2px 10px rgb(16 47 61 / 0.22);
   }
   .btn-primary:hover {
     background: var(--color-night);
   }
 
+  .btn-secondary {
+    background: var(--color-tide);
+    color: var(--color-shell);
+    border: 1px solid color-mix(in srgb, var(--color-night) 18%, transparent);
+    box-shadow: 0 2px 8px rgb(16 47 61 / 0.14);
+  }
+  .btn-secondary:hover {
+    background: color-mix(in srgb, var(--color-tide) 82%, var(--color-night));
+  }
+
+  .btn-tertiary {
+    background: color-mix(in srgb, var(--color-foam) 78%, transparent);
+    color: var(--color-canaldeep);
+    border: 1.5px solid color-mix(in srgb, var(--color-canal) 52%, transparent);
+  }
+  .btn-tertiary:hover {
+    background: color-mix(in srgb, var(--color-seaglass) 58%, var(--color-shell));
+    border-color: var(--color-canal);
+  }
+
+  .btn-sm {
+    padding: 0.48rem 0.95rem;
+    font-size: 0.875rem;
+  }
+
   .btn-quiet {
     background: transparent;
-    color: var(--color-navy);
-    border: 1.5px solid color-mix(in srgb, var(--color-navy) 40%, transparent);
+    color: var(--color-canaldeep);
+    border: 1.5px solid color-mix(in srgb, var(--color-canal) 48%, transparent);
   }
   .btn-quiet:hover {
-    background: color-mix(in srgb, var(--color-sand) 40%, transparent);
+    background: color-mix(in srgb, var(--color-seaglass) 36%, transparent);
   }
 
   /* One consistent small-caps label used everywhere (eyebrows, card labels). */
@@ -166,6 +226,17 @@ h4 {
     font-family: var(--font-ui);
     font-size: var(--font-size-sm);
     color: var(--color-driftwood);
+  }
+
+  /* Semantic text links. Safety/warning links may intentionally override
+     this with the caution role. */
+  .text-link {
+    color: var(--color-link);
+    text-decoration-line: underline;
+    text-underline-offset: 2px;
+  }
+  .text-link:hover {
+    color: var(--color-link-hover);
   }
 
   /* Tabular figures for data that should line up (tides, temps, dates). */

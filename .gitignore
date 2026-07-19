@@ -2,7 +2,7 @@
 /node_modules
 
 # next.js
-/.next/
+/.next*/
 /out/
 next-env.d.ts
 
@@ -26,3 +26,7 @@ yarn-error.log*
 
 # Playwright CLI debug logs (ephemeral)
 .playwright-cli/
+
+# Supabase local runtime files
+/supabase/.temp/
+/supabase/.branches/

@@ -67,7 +67,7 @@ function SectionHeading({
     <div id={id} className="scroll-mt-24 pt-14">
       <div className="flex items-center gap-3">
         <span className="text-cedar">{icon}</span>
-        <h2 className="text-2xl text-night sm:text-3xl">{title}</h2>
+        <h2 className="text-2xl text-heading sm:text-3xl">{title}</h2>
       </div>
       <p className="mt-2 max-w-2xl text-ink-soft">{lede}</p>
     </div>
@@ -198,7 +198,7 @@ export default function LocalPage() {
         <div className="mt-5 grid gap-6 lg:grid-cols-2">
           {/* Today's tides */}
           <div className="card p-6">
-            <h3 className="text-xl text-night">Today — {shortDate(TODAY)}</h3>
+            <h3 className="text-xl text-heading-strong">Today — {shortDate(TODAY)}</h3>
             <ul className="mt-4 space-y-2">
               {todaysTides.map((tide) => (
                 <li
@@ -225,7 +225,7 @@ export default function LocalPage() {
 
           {/* Upcoming highs & lows */}
           <div className="card p-6">
-            <h3 className="text-xl text-night">Coming days</h3>
+            <h3 className="text-xl text-heading-strong">Coming days</h3>
             <div className="mt-4 grid gap-4 sm:grid-cols-2">
               <div>
                 <p className="text-xs font-bold uppercase tracking-wide text-rust">Upcoming low tides</p>
@@ -387,7 +387,7 @@ export default function LocalPage() {
                   href={link.url}
                   target="_blank"
                   rel="noreferrer"
-                  className="font-bold text-navy underline underline-offset-2 hover:text-night"
+                  className="text-link font-bold"
                 >
                   {link.label}
                 </a>

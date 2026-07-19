@@ -18,13 +18,13 @@ function DayRow({ day, featured, animate }: { day: ForecastDay; featured?: boole
         featured ? "bg-wetsand/40" : ""
       } ${animate ? "unfold" : ""}`}
     >
-      <span className="w-24 shrink-0 font-semibold text-cedardark">{day.label}</span>
+      <span className="w-24 shrink-0 font-semibold text-heading-strong">{day.label}</span>
       <span className="min-w-40 flex-1 text-sm text-ink-soft">{day.summary}</span>
       <span className="tnum text-sm font-semibold text-ink">
         {day.highF}° <span className="font-normal text-driftwood">/ {day.lowF}°</span>
       </span>
       <span className="tnum w-16 text-sm text-canal">{day.rainChance} rain</span>
-      <span className="tnum w-44 text-sm text-cedarwarm">Low {day.lowTide}</span>
+      <span className="tnum w-44 text-sm text-tide">Low {day.lowTide}</span>
       {day.tideNote && (
         <span className="w-full text-sm italic text-driftwood sm:pl-24">{day.tideNote}</span>
       )}
@@ -50,7 +50,7 @@ export function ForecastPreview({ days }: { days: ForecastDay[] }) {
           onClick={() => setExpanded((v) => !v)}
           aria-expanded={expanded}
           aria-controls="forecast-outlook"
-          className="text-sm font-bold text-cedarwarm underline underline-offset-2 hover:text-cedardark"
+          className="text-link text-sm font-bold"
         >
           {expanded ? "Show three days" : "View 10-day outlook"}
         </button>

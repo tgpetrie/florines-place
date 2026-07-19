@@ -4,6 +4,7 @@ import { SupplyBadge, Badge } from "@/components/status-badge";
 import { supplyItems } from "@/data/supplies";
 import { beforeYouGoItems, shortDate } from "@/lib/selectors";
 import type { SupplyCategory } from "@/lib/types";
+import { APP_MODE } from "@/lib/app-mode";
 
 export const metadata: Metadata = { title: "Supplies" };
 
@@ -20,11 +21,12 @@ const categoryOrder: SupplyCategory[] = [
 ];
 
 export default function SuppliesPage() {
-  const bringList = beforeYouGoItems(supplyItems);
+  const items = APP_MODE === "demo" ? supplyItems : [];
+  const bringList = beforeYouGoItems(items);
   const byCategory = categoryOrder
     .map((category) => ({
       category,
-      items: supplyItems.filter((item) => item.category === category),
+      items: items.filter((item) => item.category === category),
     }))
     .filter((group) => group.items.length > 0);
 
@@ -37,6 +39,14 @@ export default function SuppliesPage() {
       />
 
       <div className="mx-auto max-w-5xl px-4 sm:px-6">
+        {APP_MODE === "live" && (
+          <div className="card mb-8 p-8 text-center">
+            <h2 className="text-xl text-heading">No live inventory yet</h2>
+            <p className="mt-2 text-sm text-ink-soft">
+              This board starts empty until the family inventory database is connected. No demo pantry records are shown here.
+            </p>
+          </div>
+        )}
         {/* The restock habit — replaces the 2020 letter's email-a-list workflow */}
         <div className="card mb-8 bg-navy p-6 text-center text-moon">
           <p className="leading-relaxed">
@@ -51,9 +61,9 @@ export default function SuppliesPage() {
         </div>
 
         {/* Before You Go checklist */}
-        <section className="card border-2 !border-rust/30 bg-shell p-6 sm:p-8">
+        {APP_MODE === "demo" && <section className="card border-2 !border-rust/30 bg-shell p-6 sm:p-8">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <h2 className="text-2xl text-night">Before you go</h2>
+            <h2 className="text-2xl text-heading">Before you go</h2>
             <Badge tone="rust">{bringList.length} things to bring or check</Badge>
           </div>
           <p className="mt-2 text-sm text-ink-soft">
@@ -74,13 +84,13 @@ export default function SuppliesPage() {
               </li>
             ))}
           </ul>
-        </section>
+        </section>}
 
         {/* Full board by category */}
         <div className="mt-12 space-y-10">
           {byCategory.map(({ category, items }) => (
             <section key={category}>
-              <h2 className="text-xl text-night">{category}</h2>
+              <h2 className="text-xl text-heading">{category}</h2>
               <div className="mt-3 grid gap-3 sm:grid-cols-2">
                 {items.map((item) => (
                   <div key={item.id} className="card p-4">
@@ -104,13 +114,13 @@ export default function SuppliesPage() {
         </div>
 
         {/* Placeholder add/edit — becomes real with Supabase real-time */}
-        <div className="mt-12 rounded-2xl border-2 border-dashed border-sand-deep/70 p-8 text-center">
+        {APP_MODE === "demo" && <div className="mt-12 rounded-2xl border-2 border-dashed border-sand-deep/70 p-8 text-center">
           <p className="font-bold text-ink">+ Add or update an item</p>
           <p className="mt-1 text-sm text-driftwood">
             Editing arrives with the backend — this board will update live while
             someone stands in the cabin kitchen taking inventory.
           </p>
-        </div>
+        </div>}
       </div>
     </div>
   );
