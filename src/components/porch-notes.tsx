@@ -1,23 +1,21 @@
-"use client";
-
 /**
- * Porch Notes — the family cabin message board.
+ * Porch Notes — the public family cabin message board.
  *
  * Two surfaces:
- *   <PorchNotesPreview /> — compact 2-message strip for the homepage
- *   <PorchNotesFull />    — full list for a dedicated board page
+ *   <PorchNotesPreview notes /> — compact 3-message strip for the homepage
+ *   <PorchNotesList notes />    — full list, used inside <PorchBoard>
  *
- * "Porch Notes" felt right: informal, personal, specific to this place.
- * Messages use the regular UI font; the empty-state prompt uses font-hand.
+ * Both are pure/presentational — the caller supplies notes (live snapshot or
+ * demo mock data). Posting lives in <PorchBoard> / <PorchComposer>.
  */
 
 import Link from "next/link";
-import { porchNotes } from "@/data/messages";
-import { APP_MODE } from "@/lib/app-mode";
+import type { PorchNote } from "@/lib/types";
 
 function timeAgo(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime();
   const mins = Math.floor(diff / 60000);
+  if (mins < 1) return "Just now";
   if (mins < 60) return `${mins}m ago`;
   const hrs = Math.floor(mins / 60);
   if (hrs < 24) return `${hrs}h ago`;
@@ -37,17 +35,14 @@ function Avatar({ initials }: { initials: string }) {
 
 // --- Homepage preview -------------------------------------------------------
 
-export function PorchNotesPreview() {
-  const recent = (APP_MODE === "demo" ? porchNotes : []).slice(0, 3);
+export function PorchNotesPreview({ notes }: { notes: PorchNote[] }) {
+  const recent = notes.slice(0, 3);
 
   return (
     <section className="mx-auto max-w-5xl px-4 pt-12 sm:px-6">
       <div className="flex items-baseline justify-between gap-4">
         <h2 className="text-xl text-heading">Porch Notes</h2>
-        <Link
-          href="/dashboard#porch-notes"
-          className="text-link text-sm font-semibold"
-        >
+        <Link href="/porch" className="text-link text-sm font-semibold">
           All notes →
         </Link>
       </div>
@@ -79,48 +74,32 @@ export function PorchNotesPreview() {
   );
 }
 
-// --- Full list (for dashboard) -----------------------------------------------
+// --- Full list ----------------------------------------------------------------
 
-export function PorchNotesFull() {
-  const notes = APP_MODE === "demo" ? porchNotes : [];
+export function PorchNotesList({ notes }: { notes: PorchNote[] }) {
   return (
-    <div id="porch-notes" className="scroll-mt-24">
-      <div className="flex items-baseline justify-between">
-        <h2 className="text-2xl text-heading">Porch Notes</h2>
-        <span className="text-sm text-driftwood">Family cabin conversation</span>
-      </div>
-
-      <div className="mt-4 divide-y divide-sandshadow/30 rounded-2xl border border-sandshadow/40 bg-oystercard">
-        {notes.map((note) => (
-          <div key={note.id} className="flex items-start gap-3 px-5 py-4">
-            <Avatar initials={note.initials} />
-            <div className="min-w-0 flex-1">
-              <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
-                <span className="font-semibold text-ink">{note.author}</span>
-                <span className="text-sm text-driftwood">{timeAgo(note.postedAt)}</span>
-                {note.stayId && (
-                  <span className="rounded-full bg-sandshadow/25 px-2 py-0.5 text-[0.65rem] font-semibold text-driftwood">
-                    stay note
-                  </span>
-                )}
-              </div>
-              <p className="mt-1 leading-relaxed text-ink-soft">{note.message}</p>
+    <div className="divide-y divide-sandshadow/30">
+      {notes.map((note) => (
+        <div key={note.id} className="flex items-start gap-3 px-5 py-4">
+          <Avatar initials={note.initials} />
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+              <span className="font-semibold text-ink">{note.author}</span>
+              <span className="text-sm text-driftwood">{timeAgo(note.postedAt)}</span>
+              {note.stayId && (
+                <span className="rounded-full bg-sandshadow/25 px-2 py-0.5 text-[0.65rem] font-semibold text-driftwood">
+                  stay note
+                </span>
+              )}
             </div>
+            <p className="mt-1 leading-relaxed text-ink-soft">{note.message}</p>
           </div>
-        ))}
-
-        {notes.length === 0 && (
-          <p className="px-5 py-6 text-center text-sm text-driftwood">No live porch notes yet.</p>
-        )}
-
-        {/* Placeholder write area */}
-        <div className="px-5 py-4">
-          <p className="font-hand text-lg text-driftwood">Leave a note for the family…</p>
-          <p className="mt-1 text-xs text-driftwood">
-            Writing notes from the app arrives with the backend.
-          </p>
         </div>
-      </div>
+      ))}
+
+      {notes.length === 0 && (
+        <p className="px-5 py-6 text-center text-sm text-driftwood">Nothing on the porch yet.</p>
+      )}
     </div>
   );
 }

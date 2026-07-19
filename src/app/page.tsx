@@ -10,6 +10,9 @@ import { StayStatusCard } from "@/components/stay-status-card";
 import { PlaceSignalsHome } from "@/components/place-signals";
 import { PorchNotesPreview } from "@/components/porch-notes";
 import { loadConditionsSnapshot } from "@/lib/conditions.server";
+import { loadPorchNotesSnapshot } from "@/lib/porch-notes.server";
+import { porchNotes as demoPorchNotes } from "@/data/messages";
+import { APP_MODE } from "@/lib/app-mode";
 import { nextTide } from "@/lib/selectors";
 
 const quickActions = [
@@ -24,6 +27,7 @@ export default async function HomePage() {
   const nextLow  = nextTide(conditions.tideEvents, "low",  conditions.today, conditions.nowMinutes);
   const nextHigh = nextTide(conditions.tideEvents, "high", conditions.today, conditions.nowMinutes);
   const weatherNow = conditions.weatherNow;
+  const porchNotes = APP_MODE === "demo" ? demoPorchNotes : (await loadPorchNotesSnapshot()).notes;
 
   return (
     <>
@@ -176,7 +180,7 @@ export default async function HomePage() {
       <PlaceSignalsHome />
 
       {/* ── 5. Porch Notes ───────────────────────────────────────────────── */}
-      <PorchNotesPreview />
+      <PorchNotesPreview notes={porchNotes} />
 
       {/* ── 6. Next few days ─────────────────────────────────────────────── */}
       {conditions.connected && <section className="mx-auto max-w-5xl px-4 pt-12 sm:px-6">

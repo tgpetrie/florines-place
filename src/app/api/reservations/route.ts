@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { APP_MODE } from "@/lib/app-mode";
 import { isValidStayRange } from "@/lib/date-ranges";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { supabaseAuthConfigured } from "@/lib/supabase/config";
 import { createSupabaseAdmin, liveReservationsConfigured } from "@/lib/supabase-admin";
 import { checkRateLimit, requestIp } from "@/lib/server-rate-limit";
+import { getViewerRole } from "@/lib/viewer-role.server";
 import type { StayRequestInput } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -47,24 +46,6 @@ function unavailable() {
     { error: "The live reservation database is not connected yet." },
     { status: 503, headers: noStoreHeaders },
   );
-}
-
-async function getViewerRole() {
-  if (!supabaseAuthConfigured()) return "guest" as const;
-
-  const supabase = await createSupabaseServerClient();
-  const { data: userData, error: userError } = await supabase.auth.getUser();
-  const userId = userData.user?.id;
-  if (userError || !userId) return "guest" as const;
-
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", userId)
-    .maybeSingle();
-
-  if (profile?.role === "admin" || profile?.role === "family") return profile.role;
-  return "guest" as const;
 }
 
 function isStayRequestStatus(value: unknown): value is "pending" | "approved" | "declined" {

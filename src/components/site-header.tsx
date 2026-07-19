@@ -33,6 +33,7 @@ const nav: NavItem[] = [
       { href: "/request", label: "Request a Stay" },
     ],
   },
+  { label: "Porch Notes", href: "/porch", match: ["/porch"] },
   {
     label: "Family Dashboard",
     href: "/dashboard",

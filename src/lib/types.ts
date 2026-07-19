@@ -453,6 +453,30 @@ export interface PorchNote {
   stayId?: string; // optional — if set, note belongs to a specific stay thread
 }
 
+// --- Access requests ---------------------------------------------------------
+
+export type AccessRequestStatus = "pending" | "approved" | "declined";
+
+/**
+ * Public "request access" queue — anyone without an account can ask to be
+ * invited. Admins review and decide; approving is a note-to-self, not an
+ * automatic account creation (accounts stay invite-only via Supabase).
+ */
+export interface AccessRequest {
+  id: string;
+  name: string;
+  email: string;
+  message: string;
+  status: AccessRequestStatus;
+  submitted: string; // ISO datetime
+}
+
+export interface AccessRequestInput {
+  name: string;
+  email: string;
+  message: string;
+}
+
 // --- Fishing, crabbing & shellfish -------------------------------------------
 
 /**

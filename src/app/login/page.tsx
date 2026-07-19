@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { LoginForm } from "@/app/login/login-form";
 import { PageHeader } from "@/components/page-header";
@@ -50,7 +51,11 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
         )}
         <LoginForm next={next} />
         <p className="mt-5 text-center text-sm text-driftwood">
-          Accounts are invite-only. Ask a family admin if you need access or a password reset.
+          Accounts are invite-only.{" "}
+          <Link href="/request-access" className="font-semibold text-link">
+            Request access
+          </Link>{" "}
+          or ask a family admin for a password reset.
         </p>
       </div>
     </div>

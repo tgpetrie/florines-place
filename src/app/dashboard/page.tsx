@@ -12,15 +12,18 @@ import { useCallback, useEffect, useState } from "react";
 import { useRole } from "@/lib/role-context";
 import { PageHeader } from "@/components/page-header";
 import { CalendarBadge, FeeBadge, SupplyBadge, IdeaBadge, Badge } from "@/components/status-badge";
-import { PorchNotesFull } from "@/components/porch-notes";
+import { PorchBoard } from "@/components/porch-board";
 import { familyPlans as demoFamilyPlans } from "@/data/calendar";
 import { supplyItems } from "@/data/supplies";
 import { ideas } from "@/data/ideas";
 import { guestbookEntries } from "@/data/guestbook";
+import { porchNotes as demoPorchNotes } from "@/data/messages";
 import { dateRange, shortDate } from "@/lib/selectors";
 import { APP_MODE } from "@/lib/app-mode";
 import { loadDemoStayRequests, loadReservations, updateStayRequest } from "@/lib/reservations-client";
-import type { CalendarEvent, StayRequest } from "@/lib/types";
+import { loadPorchNotes } from "@/lib/porch-notes-client";
+import { loadAccessRequests, updateAccessRequest } from "@/lib/access-requests-client";
+import type { AccessRequest, CalendarEvent, PorchNote, StayRequest } from "@/lib/types";
 
 function mockAction(label: string) {
   // Placeholder: real mutations arrive with Supabase.
@@ -42,12 +45,50 @@ function Section({ title, children, id }: { title: string; children: React.React
 }
 
 export default function DashboardPage() {
-  const { role } = useRole();
+  const { role, isAuthenticated } = useRole();
   const isAdmin = role === "admin";
   const [reservationRequests, setReservationRequests] = useState<StayRequest[]>([]);
   const [reservationEvents, setReservationEvents] = useState<CalendarEvent[]>([]);
   const [decisionBusyId, setDecisionBusyId] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [porchNotes, setPorchNotes] = useState<PorchNote[]>([]);
+  const [accessRequests, setAccessRequests] = useState<AccessRequest[]>([]);
+  const [accessBusyId, setAccessBusyId] = useState<string | null>(null);
+  const [accessError, setAccessError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (APP_MODE === "demo") {
+      setPorchNotes(demoPorchNotes);
+      return;
+    }
+    loadPorchNotes().then(setPorchNotes).catch(() => setPorchNotes([]));
+  }, []);
+
+  const refreshAccessRequests = useCallback(async () => {
+    if (APP_MODE !== "live" || role !== "admin") return;
+    try {
+      setAccessRequests(await loadAccessRequests());
+    } catch {
+      setAccessRequests([]);
+    }
+  }, [role]);
+
+  useEffect(() => {
+    void refreshAccessRequests();
+  }, [refreshAccessRequests]);
+
+  const decideAccessRequest = useCallback(async (id: string, status: "approved" | "declined") => {
+    setAccessError(null);
+    setAccessBusyId(id);
+    try {
+      await updateAccessRequest({ id, status });
+      await refreshAccessRequests();
+    } catch (error) {
+      setAccessError(error instanceof Error ? error.message : "The access request update failed.");
+    } finally {
+      setAccessBusyId(null);
+    }
+  }, [refreshAccessRequests]);
 
   const refreshReservations = useCallback(async () => {
     if (APP_MODE === "demo") setReservationRequests(loadDemoStayRequests());
@@ -168,6 +209,7 @@ export default function DashboardPage() {
       <nav className="mx-auto mb-2 flex max-w-6xl flex-wrap justify-center gap-2 px-4 sm:px-6" aria-label="Dashboard sections">
         {[
           { href: "#requests", label: "Stay Requests" },
+          ...(isAdmin ? [{ href: "#access-requests", label: "Access Requests" }] : []),
           { href: "/supplies", label: "Supplies" },
           { href: "/ideas", label: "Ideas" },
           { href: "#maintenance", label: "Maintenance" },
@@ -262,6 +304,61 @@ export default function DashboardPage() {
             ))}
           </div>
         </section>
+
+        {/* Access requests — admin only */}
+        {isAdmin && (
+          <section id="access-requests" className="card scroll-mt-24 p-6 lg:col-span-2">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl text-heading">Access requests</h2>
+              <Badge tone="sand">
+                {accessRequests.filter((r) => r.status === "pending").length} waiting
+              </Badge>
+            </div>
+            <div className="mt-4 space-y-4">
+              {accessError && (
+                <p className="rounded-xl border border-rust/40 bg-rust/10 px-4 py-3 text-sm text-rust">
+                  {accessError}
+                </p>
+              )}
+              {accessRequests.filter((r) => r.status === "pending").length === 0 && (
+                <p className="rounded-xl bg-oyster/60 px-4 py-5 text-center text-sm text-driftwood">
+                  No pending access requests.
+                </p>
+              )}
+              {accessRequests.filter((r) => r.status === "pending").map((req) => (
+                <div key={req.id} className="rounded-xl border border-sand-deep/50 bg-oyster/60 p-5">
+                  <div className="flex flex-wrap items-baseline justify-between gap-2">
+                    <div>
+                      <span className="text-lg font-bold text-night">{req.name}</span>
+                      <span className="ml-3 text-ink-soft">{req.email}</span>
+                    </div>
+                    <span className="text-xs text-driftwood">asked {shortDate(req.submitted)}</span>
+                  </div>
+                  {req.message && <p className="mt-2 text-sm italic text-ink-soft">&ldquo;{req.message}&rdquo;</p>}
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    <button
+                      className={actionBtn}
+                      disabled={accessBusyId === req.id}
+                      onClick={() => void decideAccessRequest(req.id, "approved")}
+                    >
+                      Approve
+                    </button>
+                    <button
+                      className={actionBtn}
+                      disabled={accessBusyId === req.id}
+                      onClick={() => void decideAccessRequest(req.id, "declined")}
+                    >
+                      Decline
+                    </button>
+                  </div>
+                  <p className="mt-2 text-xs text-driftwood">
+                    Approving is a note-to-self — invite {req.name.split(" ")[0]} through Supabase to actually grant access.
+                  </p>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
 
         {/* Upcoming approved stays + fee status */}
         <Section title="Upcoming Approved Stays">
@@ -366,8 +463,16 @@ export default function DashboardPage() {
         </Section>
 
         {/* Porch Notes — full width */}
-        <section className="card p-6 lg:col-span-2">
-          <PorchNotesFull />
+        <section id="porch-notes" className="card scroll-mt-24 p-6 lg:col-span-2">
+          <div className="flex items-baseline justify-between">
+            <h2 className="text-xl text-heading">Porch Notes</h2>
+            <Link href="/porch" className="text-sm font-semibold text-link">
+              Open full board →
+            </Link>
+          </div>
+          <div className="mt-4">
+            <PorchBoard initialNotes={porchNotes} isAuthenticated={isAuthenticated} />
+          </div>
         </section>
 
         {/* Guestbook */}
