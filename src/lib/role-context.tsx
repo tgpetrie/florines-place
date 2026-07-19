@@ -1,14 +1,5 @@
 "use client";
 
-/**
- * Mock role switching.
- *
- * BACKEND NOTE: this whole file is the seam for Supabase Auth. When real
- * logins exist, replace RoleProvider's internals with the Supabase session
- * (role read from a `profiles` table) and delete the switcher UI. Every
- * component that calls `useRole()` keeps working unchanged.
- */
-
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { APP_MODE } from "@/lib/app-mode";
 import type { Role } from "@/lib/types";
@@ -16,17 +7,33 @@ import type { Role } from "@/lib/types";
 interface RoleContextValue {
   role: Role;
   setRole: (role: Role) => void;
+  isAuthenticated: boolean;
+  email: string | null;
 }
 
 const RoleContext = createContext<RoleContextValue>({
   role: "guest",
   setRole: () => {},
+  isAuthenticated: false,
+  email: null,
 });
 
 const STORAGE_KEY = "florines-place:role";
 
-export function RoleProvider({ children }: { children: ReactNode }) {
-  const [role, setRoleState] = useState<Role>("guest");
+interface RoleProviderProps {
+  children: ReactNode;
+  initialRole?: Role;
+  isAuthenticated?: boolean;
+  email?: string | null;
+}
+
+export function RoleProvider({
+  children,
+  initialRole = "guest",
+  isAuthenticated = false,
+  email = null,
+}: RoleProviderProps) {
+  const [role, setRoleState] = useState<Role>(initialRole);
 
   // Restore the previously chosen role after mount (SSR-safe).
   useEffect(() => {
@@ -43,7 +50,11 @@ export function RoleProvider({ children }: { children: ReactNode }) {
     window.localStorage.setItem(STORAGE_KEY, next);
   };
 
-  return <RoleContext.Provider value={{ role, setRole }}>{children}</RoleContext.Provider>;
+  return (
+    <RoleContext.Provider value={{ role, setRole, isAuthenticated, email }}>
+      {children}
+    </RoleContext.Provider>
+  );
 }
 
 export function useRole() {

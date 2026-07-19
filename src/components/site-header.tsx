@@ -7,6 +7,7 @@ import { useRole, roleLabels } from "@/lib/role-context";
 import { Lantern } from "@/components/shore-art";
 import { APP_MODE } from "@/lib/app-mode";
 import type { Role } from "@/lib/types";
+import { signOut } from "@/app/auth/actions";
 
 /**
  * Four primary areas, each opening a hover dropdown for its subpages (no
@@ -58,7 +59,7 @@ const nav: NavItem[] = [
 
 export function SiteHeader() {
   const pathname = usePathname();
-  const { role, setRole } = useRole();
+  const { role, setRole, isAuthenticated, email } = useRole();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [hovered, setHovered] = useState<string | null>(null);
 
@@ -124,6 +125,30 @@ export function SiteHeader() {
 
         <div className="flex items-center gap-2">
           {APP_MODE === "demo" && <RolePicker role={role} setRole={setRole} />}
+          {APP_MODE === "live" && (
+            isAuthenticated ? (
+              <form action={signOut} className="hidden items-center gap-2 sm:flex">
+                {email && (
+                  <span className="max-w-40 truncate text-xs text-driftwood" title={email}>
+                    {email}
+                  </span>
+                )}
+                <button
+                  type="submit"
+                  className="rounded-full border border-sandshadow/60 bg-oystercard px-3 py-1.5 text-sm font-semibold text-canaldeep hover:bg-wetsand/50"
+                >
+                  Sign out
+                </button>
+              </form>
+            ) : (
+              <Link
+                href="/login"
+                className="rounded-full border border-sandshadow/60 bg-oystercard px-3 py-1.5 text-sm font-semibold text-canaldeep hover:bg-wetsand/50"
+              >
+                Family sign in
+              </Link>
+            )
+          )}
           <button
             type="button"
             className="rounded-full border-2 border-canal/40 px-3 py-1.5 text-sm font-semibold text-canaldeep lg:hidden"
@@ -173,6 +198,13 @@ export function SiteHeader() {
               )}
             </div>
           ))}
+          {APP_MODE === "live" && isAuthenticated && (
+            <form action={signOut} className="mt-3 border-t border-sandshadow/40 pt-3 sm:hidden">
+              <button type="submit" className="block w-full rounded-lg px-3 py-2.5 text-left font-semibold text-rust">
+                Sign out{email ? ` · ${email}` : ""}
+              </button>
+            </form>
+          )}
         </nav>
       )}
     </header>

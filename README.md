@@ -59,6 +59,17 @@ SUPABASE_URL=https://YOUR_PROJECT.supabase.co
 SUPABASE_SECRET_KEY=YOUR_SERVER_ONLY_SECRET_KEY
 ```
 
+For family sign-in, also set the Supabase publishable key used by Auth:
+
+```bash
+NEXT_PUBLIC_SUPABASE_URL=https://YOUR_PROJECT.supabase.co
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
+```
+
+Best practice is to set both public auth variables even when the server can
+fall back to `SUPABASE_URL`; that keeps future browser-side Supabase usage
+working without another config pass.
+
 Never prefix the secret key with `NEXT_PUBLIC_`. Link the Supabase CLI to the
 intended project, review the SQL, and apply the included migration:
 
@@ -120,16 +131,22 @@ family-curated directory:
 - **Admin layer** — placeholder edit/verify/note buttons, role-gated, that
   become Supabase mutations later
 
-## Roles (mock for now)
+## Authentication and roles
 
-Use the **"Viewing as"** switcher in the header to preview the app as:
+Demo builds keep the **"Viewing as"** switcher in the header. Live builds use
+invite-only Supabase Auth accounts and read authorization from the account's
+`profiles` row:
 
 - **Guest** — welcome info, request a stay, see their own request status
 - **Family Owner** — the Family Dashboard, supplies, ideas, guestbook
 - **Admin** — everything, plus fee waiving, user/calendar/guide management buttons
 
-The switcher is a stand-in for real logins. See `src/lib/role-context.tsx` —
-that file is the seam where Supabase Auth plugs in.
+In live mode, `/dashboard`, `/supplies`, `/ideas`, and `/guestbook` require a
+signed-in `family` or `admin` profile. Public cabin information, availability,
+and the stay-request form remain available without an account. Create or invite
+family accounts through Supabase Auth. New accounts start as `guest`; grant
+`family` or `admin` explicitly by updating `public.profiles.role` through a
+trusted server or the Supabase dashboard.
 
 ## Project structure
 
@@ -166,9 +183,9 @@ rent), guestbook (never reviews or ratings).
 
 The project is organized so Supabase can be wired in without restructuring:
 
-1. **Auth** — replace the internals of `src/lib/role-context.tsx` with the
-   Supabase session; `role` comes from a `profiles` table. Every `useRole()`
-   call site keeps working. Delete the header switcher.
+1. **Auth** — Supabase cookie sessions and protected family routes are wired in
+   for live mode; `role` comes from the RLS-protected `profiles` table. Demo mode
+   keeps the role switcher for previews.
 2. **Database** — `stay_requests` and `calendar_events` now have a real Supabase
    migration and server API. The remaining `src/data/` modules map to future
    tables (`family_plans`, `supply_items`, `ideas`, `guestbook_entries`, and
